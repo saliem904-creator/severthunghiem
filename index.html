@@ -296,9 +296,13 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+
 // ==========================================
-// BIẾN TOÀN CỤC
+// BIẾN TOÀN CỤC & MÃ HÓA KHÓA FIREBASE
 // ==========================================
+function encodeFB(str) { return str.replace(/\./g, '_dot_').replace(/\#/g, '_hash_').replace(/\$/g, '_usd_').replace(/\[/g, '_lbra_').replace(/\]/g, '_rbra_').replace(/\//g, '_slash_'); }
+function decodeFB(str) { return str.replace(/_dot_/g, '.').replace(/_hash_/g, '#').replace(/_usd_/g, '$').replace(/_lbra_/g, '[').replace(/_rbra_/g, ']').replace(/_slash_/g, '/'); }
+
 let RAW_ITEMS = []; let itemDatabase = [];
 let dmvtTiem = {}; let dmvtKho = {}; 
 let tonTiem = {}; let tonKho = {}; let tonSV = {};
@@ -328,11 +332,11 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'F3') { e.preventDefault(); document.getElementById('searchInput').focus(); }
     
-   // Mở khóa Admin bằng phím F8 (Né Chrome, né Zalo, né mọi thứ!)
+    // Mở khóa Admin bằng phím F8
     if (e.key === 'F8') {
         e.preventDefault();
         let pass = prompt("Nhập mật khẩu Admin:");
-        if (pass === "123") { // Đổi mật khẩu Admin ở đây
+        if (pass === "123") {
             document.getElementById('adminPanel').style.display = 'flex';
         } else {
             alert("Sai mật khẩu!");
@@ -431,25 +435,24 @@ function parseExcelToJSON(file, type) {
                 let result = {};
                 
                 if (type === 'DMVT_TIEM' || type === 'DMVT_KHO') {
-                    // Cấu trúc Kiotviet chuẩn: [1] Nhóm, [2] Mã, [4] Tên, [14] ĐVT, [23] Mô tả, [25] Vị trí
                     for (let i = 1; i < rows.length; i++) {
                         let c = (rows[i][2] || '').toString().trim();
                         if (!c) continue;
+                        let key = encodeFB(c);
                         if (type === 'DMVT_TIEM') {
-                            result[c] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
+                            result[key] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
                         } else {
-                            result[c] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
+                            result[key] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
                         }
                     }
                 } 
                 else if (type === 'TON_SV') {
                     for (let i = 1; i < rows.length; i++) {
                         let c = (rows[i][0] || '').toString().trim();
-                        if (c) result[c] = parseFloat(rows[i][6]) || 0;
+                        if (c) result[encodeFB(c)] = parseFloat(rows[i][6]) || 0;
                     }
                 } 
                 else if (type === 'TON_TIEM' || type === 'TON_KHO') {
-                    // CÔNG NGHỆ NHẬN DIỆN CỘT THÔNG MINH
                     let colCode = 0, colTon = 1; let startRow = 0;
                     for(let j=0; j<Math.min(rows.length, 10); j++) {
                          let r = rows[j]; if(!r) continue;
@@ -461,7 +464,7 @@ function parseExcelToJSON(file, type) {
                     }
                     for (let i = startRow + 1; i < rows.length; i++) {
                         let c = (rows[i][colCode] || '').toString().trim();
-                        if (c) result[c] = parseFloat(rows[i][colTon]) || 0;
+                        if (c) result[encodeFB(c)] = parseFloat(rows[i][colTon]) || 0;
                     }
                 }
                 resolve(result);
@@ -547,14 +550,24 @@ async function pullData(type) {
     dbStatus.innerText = '⏳ Đang kéo Data mới...';
     try {
         if (type === 'dmvt') {
-            const snapT = await database.ref('data/dmvtTiem').once('value'); dmvtTiem = snapT.val() || {};
-            const snapK = await database.ref('data/dmvtKho').once('value'); dmvtKho = snapK.val() || {};
+            const snapT = await database.ref('data/dmvtTiem').once('value'); 
+            let rawT = snapT.val() || {}; dmvtTiem = {}; for(let k in rawT) dmvtTiem[decodeFB(k)] = rawT[k];
+            
+            const snapK = await database.ref('data/dmvtKho').once('value'); 
+            let rawK = snapK.val() || {}; dmvtKho = {}; for(let k in rawK) dmvtKho[decodeFB(k)] = rawK[k];
+            
             await Promise.all([saveToDB('dmvtTiem', dmvtTiem), saveToDB('dmvtKho', dmvtKho)]);
         }
         if (type === 'tonkho') {
-            const snapT = await database.ref('data/tonTiem').once('value'); tonTiem = snapT.val() || {};
-            const snapK = await database.ref('data/tonKho').once('value'); tonKho = snapK.val() || {};
-            const snapS = await database.ref('data/tonSV').once('value'); tonSV = snapS.val() || {};
+            const snapT = await database.ref('data/tonTiem').once('value'); 
+            let rawT = snapT.val() || {}; tonTiem = {}; for(let k in rawT) tonTiem[decodeFB(k)] = rawT[k];
+            
+            const snapK = await database.ref('data/tonKho').once('value'); 
+            let rawK = snapK.val() || {}; tonKho = {}; for(let k in rawK) tonKho[decodeFB(k)] = rawK[k];
+            
+            const snapS = await database.ref('data/tonSV').once('value'); 
+            let rawS = snapS.val() || {}; tonSV = {}; for(let k in rawS) tonSV[decodeFB(k)] = rawS[k];
+            
             await Promise.all([saveToDB('tonTiem', tonTiem), saveToDB('tonKho', tonKho), saveToDB('tonSV', tonSV)]);
         }
         mergeDatasets(); showToast("✅ Đồng bộ Cloud hoàn tất cực nhanh!");
@@ -576,13 +589,26 @@ function mergeDatasets() {
 }
 
 // ==========================================
-// CÁC HÀM XỬ LÝ (TÌM KIẾM, RENDER BẢNG, CHỤP ẢNH) GIỮ NGUYÊN HOÀN TOÀN
+// XỬ LÝ TEXT VÀ TÌM KIẾM
 // ==========================================
 function removeVietnameseTones(str) {
-  if (!str) return ''; str = str.toLowerCase();
-  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a"); str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e"); str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o"); str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u"); str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y"); str = str.replace(/đ/g, "d"); str = str.replace(/[\u0300-\u036f]/g, ""); return str;
+    if (!str) return '';
+    str = str.toString().toLowerCase();
+    const map = {
+        "a": /[àáạảãâầấậẩẫăằắặẳẵ]/g,
+        "e": /[èéẹẻẽêềếệểễ]/g,
+        "i": /[ìíịỉĩ]/g,
+        "o": /[òóọỏõôồốộổỗơờớợởỡ]/g,
+        "u": /[ùúụủũưừứựửữ]/g,
+        "y": /[ỳýỵỷỹ]/g,
+        "d": /đ/g
+    };
+    for (let key in map) {
+        str = str.replace(map[key], key);
+    }
+    return str;
 }
+
 function normalizeCode(c) { return (!c) ? '' : c.toString().replace(/^['"`‘’\s]+/g, '').replace(/[.\s]+$/g, '').replace(/[- \t\r\n'"`‘’]/g, '').toUpperCase(); }
 
 function buildIndex(items) {
@@ -593,24 +619,72 @@ function buildIndex(items) {
 }
 
 function handleSearchInput() {
-  let query = document.getElementById('searchInput').value.trim(); let dropdown = document.getElementById('searchDropdown');
+  let query = document.getElementById('searchInput').value.trim(); 
+  let dropdown = document.getElementById('searchDropdown');
   if(query.length < 2) { dropdown.style.display = 'none'; return; }
-  let qClean = normalizeCode(query); let qNorm = removeVietnameseTones(query); let tokens = qNorm.split(/[\s,;+-_]+/).filter(t => t.length > 0);
-  let results = []; let upperQuery = query.toUpperCase();
+  
+  let qClean = normalizeCode(query); 
+  let qNorm = removeVietnameseTones(query); 
+  // FIX: Chuyển dấu '-' ra ngoài cùng để tránh tạo Range nuốt mất số và chữ in hoa
+  let tokens = qNorm.split(/[\s,;+_\/-]+/).filter(t => t.length > 0);
+  
+  let rawQueryUpper = query.toUpperCase();
+  let firstTokenUpper = tokens.length > 0 ? tokens[0].toUpperCase() : '';
+
+  let results = [];
 
   itemDatabase.forEach(item => {
-      let score = 0; let rawCode = item.c.toUpperCase();
-      if (rawCode === upperQuery || item.cleanCode === qClean) score = 10000;
-      else if (rawCode.startsWith(upperQuery) || item.cleanCode.startsWith(qClean)) score = 5000 - item.cleanCode.length; 
-      else if (rawCode.includes(upperQuery) || item.cleanCode.includes(qClean)) score = 1000 - item.cleanCode.length;
-      if (score < 1000 && tokens.length > 0) {
-          let nameMatch = true; for(let token of tokens) { if (!item.fullSearchText.includes(token)) { nameMatch = false; break; } }
+      let score = 0; 
+      let rawCode = item.c.toUpperCase();
+      
+      // 1. Tuyệt đối chính xác mã
+      if (rawCode === rawQueryUpper || item.cleanCode === qClean) {
+          score = 10000;
+      } 
+      // 2. KiotViet Smart Match: Khớp MÃ + TÊN (Token đầu tiên khớp tiền tố mã, các token sau khớp tên)
+      else if (tokens.length > 1 && rawCode.startsWith(firstTokenUpper)) {
+          let nameMatch = true;
+          for (let i = 1; i < tokens.length; i++) {
+              if (!item.fullSearchText.includes(tokens[i])) { nameMatch = false; break; }
+          }
+          if (nameMatch) score = 8000 + item.s; 
+      }
+      // 3. Khớp một phần mã
+      else if (rawCode.startsWith(rawQueryUpper) || item.cleanCode.startsWith(qClean)) {
+          score = 5000 - item.cleanCode.length; 
+      }
+      else if (rawCode.includes(rawQueryUpper) || item.cleanCode.includes(qClean)) {
+          score = 1000 - item.cleanCode.length;
+      }
+      // 4. KiotViet Smart Match 2: Bất kỳ Token nào khớp mã, các token còn lại khớp tên
+      else if (tokens.length > 1) {
+          for(let i=0; i<tokens.length; i++) {
+              if (rawCode.includes(tokens[i].toUpperCase())) {
+                  let nameMatch = true;
+                  for (let j = 0; j < tokens.length; j++) {
+                      if (j === i) continue;
+                      if (!item.fullSearchText.includes(tokens[j])) { nameMatch = false; break; }
+                  }
+                  if (nameMatch) { score = 3000 + item.s; break; }
+              }
+          }
+      }
+      
+      // 5. Khớp tìm kiếm text thông thường
+      if (score === 0 && tokens.length > 0) {
+          let nameMatch = true; 
+          for(let token of tokens) { 
+              if (!item.fullSearchText.includes(token)) { nameMatch = false; break; } 
+          }
           if (nameMatch) score = 500 + item.s; 
       }
+      
       if (score > 0) results.push({ item: item, score: score });
   });
   
-  results.sort((a, b) => b.score - a.score); results = results.slice(0, 50).map(r => r.item);
+  results.sort((a, b) => b.score - a.score); 
+  results = results.slice(0, 50).map(r => r.item);
+  
   if(results.length === 0) { dropdown.style.display = 'none'; return; }
   
   dropdown.innerHTML = '';
@@ -818,4 +892,30 @@ async function copySelectedAsImage() {
         else {
             let qtyWrapper = row.querySelector('.qty-wrapper'); if(qtyWrapper) qtyWrapper.style.border = 'none';
             let qtyBtns = row.querySelectorAll('.qty-btn'); qtyBtns.forEach(btn => btn.style.display = 'none');
-            let input = row.querySelector('.qty-input'); if
+            let input = row.querySelector('.qty-input'); if(input) { input.style.border = 'none'; input.style.background = 'transparent'; }
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 200));
+    try {
+        let canvas = await html2canvas(table, { backgroundColor: "#ffffff", scale: 2, logging: false, useCORS: true });
+        canvas.toBlob(function(blob) {
+            const item = new ClipboardItem({ "image/png": blob });
+            navigator.clipboard.write([item]).then(function() { showToast("📸 Đã Copy ảnh Zalo thành công! Bấm Ctrl+V để dán"); }, function(error) { showToast("Lỗi copy ảnh: " + error); });
+        });
+    } catch(err) { showToast("Lỗi tạo ảnh: " + err); }
+
+    table.classList.remove('is-snapping'); hideCols.forEach(el => el.style.display = '');
+    allRows.forEach((row) => {
+        row.style.display = ''; let qtyWrapper = row.querySelector('.qty-wrapper'); if(qtyWrapper) qtyWrapper.style.border = '';
+        let qtyBtns = row.querySelectorAll('.qty-btn'); qtyBtns.forEach(btn => btn.style.display = '');
+        let input = row.querySelector('.qty-input'); if(input) { input.style.border = ''; input.style.background = ''; }
+    });
+    thElements.forEach(th => th.style.position = ''); tableContainer.style.overflowY = origOverflow; table.style.width = originalWidth; table.style.margin = '';
+    
+    if(!hasSelection) { let checkboxes = document.querySelectorAll('.row-item-check'); for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = false; }
+    document.getElementById('checkAll').checked = false; lastCheckedIndex = null; updateSelectedCount(); overlay.style.display = 'none'; 
+}
+</script>
+</body>
+</html>

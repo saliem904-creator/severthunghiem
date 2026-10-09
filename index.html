@@ -3,10 +3,14 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HỆ THỐNG TRA CỨU & SOẠN HÀNG</title>
+<title>HỆ THỐNG TRA CỨU & SOẠN HÀNG - CLOUD PRO</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Chỉ dùng Firebase Database (Miễn phí), bỏ Storage -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <style>
   :root {
@@ -63,62 +67,24 @@
 
   /* --- MAIN WORKSPACE --- */
   .workspace { flex: 1; display: flex; flex-direction: column; padding: 15px 20px; overflow-y: auto; }
-
-  /* --- TABLE AREA --- */
   .table-card { border-radius: 8px; flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff;}
-  
   .table-header { padding: 10px 15px; background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
   .header-left { display: flex; align-items: center; gap: 15px; }
   .table-header strong { font-size: 14px; color: #000; text-transform: uppercase; margin-right: 10px; font-weight: 800;}
-  
-  /* BONG BÓNG ĐẾM SỐ LƯỢNG MÓN CHỌN (MÀU XANH LÁ) */
   .selected-badge { background: #15803d; color: #fff; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 12px; display: none;}
-
   .customer-input { width: 350px; padding: 6px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; font-weight: normal; color: #000; outline: none; background: #fff; transition: 0.2s;}
   .customer-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1); }
-  .customer-input::placeholder { color: #9aa0a6; }
-  
   .table-container { overflow-y: auto; flex: 1; position: relative; background: #fff;}
-  
-  /* ==========================================================
-     THIẾT KẾ BẢNG: FIX LỖI HIGHLIGHT VÀ HOVER ĐỔ BÓNG
-     ========================================================== */
   table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 13.5px; table-layout: fixed; }
-  
   th { position: sticky; top: 0; background: var(--bg-main); color: #000 !important; font-weight: 900 !important; padding: 10px; z-index: 10; font-size: 12.5px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; white-space: nowrap;}
-  
-  /* Cấu hình tr và td để nhận hiệu ứng bồng bềnh và bóng */
   tbody tr { background-color: #ffffff; transition: all 0.2s ease; }
   tbody td { padding: 12px 10px; vertical-align: middle; color: #000; border-bottom: 1px solid var(--border); background-color: transparent;}
+  tbody tr:hover { background-color: #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transform: translateY(-2px); z-index: 2; position: relative; }
+  tbody tr:hover td { border-bottom-color: transparent; } 
+  tbody tr.highlight-row { animation: highlightAnim 5s ease-out forwards !important; }
+  tbody tr.highlight-row td { background-color: transparent !important; }
+  @keyframes highlightAnim { 0% { background-color: #fef08a; } 10% { background-color: #fde047; } 80% { background-color: #fef08a; } 100% { background-color: #ffffff; } }
   
-  /* HIỆU ỨNG HOVER ĐỔ BÓNG TRỞ LẠI */
-  tbody tr:hover { 
-      background-color: #f1f5f9; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-      transform: translateY(-2px); 
-      z-index: 2; 
-      position: relative; 
-  }
-  tbody tr:hover td { border-bottom-color: transparent; } /* Giấu viền dưới khi dòng đang nổi lên */
-  
-  /* HIỆU ỨNG HIGHLIGHT CHỚP VÀNG 5 GIÂY XỊN XÒ */
-  tbody tr.highlight-row { 
-      animation: highlightAnim 5s ease-out forwards !important; 
-  }
-  tbody tr.highlight-row td {
-      background-color: transparent !important; /* Đảm bảo td trong suốt để thấy màu vàng của hàng */
-  }
-  
-  @keyframes highlightAnim {
-      0%   { background-color: #fef08a; } /* Vàng sáng rực */
-      10%  { background-color: #fde047; } /* Vàng đậm nhấn mạnh */
-      80%  { background-color: #fef08a; } /* Giữ màu vàng tới giây thứ 4 */
-      100% { background-color: #ffffff; } /* Chuyển mượt về trắng ở giây thứ 5 */
-  }
-  
-  /* ==========================================================
-     GIỮ NGUYÊN KÍCH THƯỚC CỘT "NGON LÀNH"
-     ========================================================== */
   .col-del { width: 35px; text-align: center; }
   .col-stt { width: 45px; text-align: center !important; }
   .col-goi-y { width: 155px; text-align: center !important; } 
@@ -133,7 +99,6 @@
   .col-spacer { width: auto; } 
 
   .row-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
-
   .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 11.5px; white-space: nowrap; }
   .tag-tiem { background: #e6f4ea; color: #137333; }
   .tag-kho { background: #e8f0fe; color: #1967d2; }
@@ -144,7 +109,6 @@
   .name-cell { font-weight: 600; color: #000; font-size: 14.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; white-space: normal;}
   
   .inline-loc { display: inline-block; margin-top: 5px; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 12px; color: #475569; border: 1px solid #cbd5e1; background: #fff;}
-  
   .bg-tret { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; color: #166534 !important;} 
   .bg-lau1 { background-color: #eff6ff !important; border-color: #bfdbfe !important; color: #1e40af !important;} 
   .bg-lau2 { background-color: #fffbeb !important; border-color: #fde68a !important; color: #92400e !important;} 
@@ -159,7 +123,6 @@
   .qty-btn:hover { background: #fce8e6; border-radius: 4px;}
   .qty-input { width: 32px; text-align: center; border: 1px solid transparent; border-bottom: 1px solid #ccc; font-weight: bold; font-size: 14px; outline: none; padding: 2px 0; color: #000; background: transparent; transition: all 0.2s;}
   .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  
   tr:hover .qty-btn { visibility: visible; opacity: 1; }
   tr:hover .qty-input { border: 1px solid var(--kho-color); border-radius: 4px; padding: 2px; }
 
@@ -168,33 +131,19 @@
 
   .alert-box { margin: 15px 20px 0; padding: 10px 15px; border-radius: 6px; font-size: 13px; display: none; font-weight: 600; }
   .alert-danger { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
-  
   #snapOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #1976d2;}
 
   .toast { visibility: hidden; min-width: 250px; background-color: #15803d; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: bold; opacity: 0; transition: opacity 0.5s, bottom 0.5s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);}
   .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
-  /* ==========================================================
-     GIẢI PHÁP TỐI THƯỢNG: CLASS ĐẶC BIỆT KÍCH HOẠT KHI CHỤP ẢNH
-     ÉP BẢNG CHỈ RỘNG 700PX, TÊN HÀNG BỊ CẮT BỚT ĐỂ 4 CỘT DÍNH SÁT VÀO NHAU
-     ========================================================== */
-  table.is-snapping {
-      width: 700px !important; 
-      margin: 0 auto;
-      table-layout: fixed !important;
-  }
+  table.is-snapping { width: 700px !important; margin: 0 auto; table-layout: fixed !important;}
   table.is-snapping th { background-color: #f8f9fa !important; border-bottom: 1px solid #e2e8f0 !important; position: static !important; }
-  
   table.is-snapping .col-ma { width: 140px !important; }
   table.is-snapping .col-ten { width: 360px !important; padding-right: 15px !important; }
-  
-  /* 4 CỘT SỐ BỊ ÉP SÁT RẠT VÀO NHAU VÀ VÀO TÊN HÀNG */
   table.is-snapping .col-dvt { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
   table.is-snapping .col-sl { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
   table.is-snapping .col-ton { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
   table.is-snapping .col-sv { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
-  
-  /* Ẩn UI dư thừa khi chụp */
   table.is-snapping .qty-wrapper { border: none; }
   table.is-snapping .qty-btn { display: none; }
   table.is-snapping .qty-input { width: auto; border: none !important; padding: 0 !important;}
@@ -205,18 +154,15 @@
     .top-nav, .table-header, .no-print, .btn-remove-row, .col-check, .col-spacer { display: none !important; }
     .workspace { padding: 0; border: none; box-shadow: none; display: block; }
     .table-card { border: none; box-shadow: none; display: block; }
-    
     table { width: 700px !important; margin: 0 auto; border-collapse: collapse; border-spacing: 0; table-layout: fixed !important;}
     th { border: none !important; border-bottom: 2px solid #000 !important; padding: 10px !important; text-align: center !important;}
     td { border: none !important; border-bottom: 1px solid #e2e8f0 !important; padding: 12px 10px !important; text-align: center !important;}
-    
     th.col-ma, td.col-ma { width: 140px !important; }
     th.col-ten, td.col-ten { width: 360px !important; text-align: left !important; }
     th.col-dvt, td.col-dvt { width: 50px !important; padding: 0 !important; }
     th.col-sl, td.col-sl { width: 50px !important; padding: 0 !important; }
     th.col-ton, td.col-ton { width: 50px !important; padding: 0 !important; }
     th.col-sv, td.col-sv { width: 50px !important; padding: 0 !important; }
-
     .qty-wrapper { border: none; }
     .qty-btn { display: none; }
     .qty-input { width: auto; border: none !important; padding: 0 !important;}
@@ -224,12 +170,43 @@
     .print-title { display: block !important; margin-bottom: 10px; font-size: 16pt; font-weight: bold; text-align: center; }
   }
   .print-title { display: none; }
+
+  /* Giao diện Admin Ẩn */
+  #adminPanel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
+  .admin-card { background: #fff; padding: 30px; border-radius: 12px; color: #000; width: 550px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+  .admin-card h2 { margin-bottom: 5px; color: var(--primary);}
+  .admin-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px;}
+  .admin-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px;}
+  .admin-btn:hover { background: #1565c0; }
+  .file-group { margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px dashed #ced4da;}
+  .file-group label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 13px; color: var(--kho-color);}
+  .admin-close { background: #e0e0e0; color: #000; margin-left: 10px; }
+  .admin-close:hover { background: #bdbdbd; }
 </style>
 </head>
 <body>
 
 <div id="snapOverlay">📸 Đang tạo ảnh Copy Zalo...</div>
 <div id="toastMsg" class="toast"></div>
+
+<!-- Giao diện Admin Ẩn -->
+<div id="adminPanel">
+    <div class="admin-card">
+        <h2>🚀 TẢI DỮ LIỆU LÊN MÁY CHỦ</h2>
+        <p>Hệ thống tự động nén Excel siêu nhẹ trước khi đẩy lên Firebase</p>
+        <div class="file-group">
+            <label>1. Tải lên DANH MỤC (Tên file phải chứa chữ "TIEM" hoặc "KHO"):</label>
+            <input type="file" id="fileDMVT" accept=".xlsx,.xls,.csv" multiple>
+        </div>
+        <div class="file-group">
+            <label>2. Tải lên TỒN KHO (Tên file phải chứa "TIEM", "KHO", hoặc "SV"):</label>
+            <input type="file" id="fileTonKho" accept=".xlsx,.xls,.csv" multiple>
+        </div>
+        <div id="adminStatus" style="color: #15803d; font-weight: bold; margin: 10px 0; min-height: 20px;"></div>
+        <button class="admin-btn" onclick="uploadFilesToFirebase()" id="btnUpload">⬆️ Bắt Đầu Nén & Đẩy Dữ Liệu</button>
+        <button class="admin-btn admin-close" onclick="document.getElementById('adminPanel').style.display='none'">Đóng</button>
+    </div>
+</div>
 
 <div class="top-nav no-print">
   <div class="search-container">
@@ -244,12 +221,11 @@
   </div>
   
   <div class="nav-actions">
-    <span id="dbStatus" class="status-badge">⏳ Đang tải dữ liệu...</span>
+    <span id="dbStatus" class="status-badge">⏳ Đang kết nối Cloud...</span>
     <label class="btn-tool btn-primary-tool">
         📸 Quét Ảnh (OCR) / Kéo File Excel
         <input type="file" id="mediaInput" accept="image/*,.xlsx,.xls,.csv" style="display:none;" onchange="handleMediaUpload(this.files)">
     </label>
-    <button class="btn-tool" onclick="fetchDataFromServer()">🔄 Tải Data Tồn</button>
     <button class="btn-tool btn-clear" onclick="clearCart()">🗑️ Xóa toa</button>
   </div>
 </div>
@@ -266,7 +242,6 @@
           <input type="text" id="customerName" class="customer-input" placeholder="Ghi chú đơn hàng (Tên Khách Hàng)..." oninput="debounceProcess()">
       </div>
       
-      <!-- BONG BÓNG ĐẾM SỐ MÓN ĐÃ ĐƯỢC DỜI SANG PHẢI, CẠNH NÚT COPY TEXT -->
       <div style="display: flex; gap: 10px; align-items: center;">
         <span id="selectedCountBadge" class="selected-badge">Đã chọn: 0 món</span>
         <button class="btn-tool" onclick="copyTableData()">📋 Copy Text</button>
@@ -307,62 +282,73 @@
 
 <script>
 // ==========================================
-// CẤU TRÚC DỮ LIỆU & LƯU TRỮ LOCAL
+// CẤU HÌNH FIREBASE (DÁN API KEY VÀO ĐÂY)
 // ==========================================
-let RAW_ITEMS = [];
-let itemDatabase = [];
-let fileDataSV = {}; let fileDataKho = {}; let fileDataTiem = {};
+const firebaseConfig = {
+    apiKey: "AIzaSyA3v2QqdDJcJccWfMcv8LKIkrnuz2MZHwo",
+    authDomain: "quan-ly-kho-cf80f.firebaseapp.com",
+    databaseURL: "https://quan-ly-kho-cf80f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "quan-ly-kho-cf80f",
+    storageBucket: "quan-ly-kho-cf80f.firebasestorage.app",
+    messagingSenderId: "917518858977",
+    appId: "1:917518858977:web:1be5d23bc40e58dad1d5a0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+// ==========================================
+// BIẾN TOÀN CỤC
+// ==========================================
+let RAW_ITEMS = []; let itemDatabase = [];
+let dmvtTiem = {}; let dmvtKho = {}; 
+let tonTiem = {}; let tonKho = {}; let tonSV = {};
+
 let saleMode = 'tiem';
 let cartItems = [];
-let debounceTimer = null;
-let lastHighlightId = null;
-let lastCheckedIndex = null;
-let lastEscTime = 0; 
+let debounceTimer = null; let lastHighlightId = null; let lastCheckedIndex = null; let lastEscTime = 0; 
+let lastCloudUpdate = { dmvt: 0, tonkho: 0 };
 
-const DB_NAME = 'WarehouseAppDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'datasets';
+const DB_NAME = 'WarehouseAppDB'; const DB_VERSION = 3; const STORE_NAME = 'datasets';
 
 window.addEventListener('DOMContentLoaded', () => {
   let savedMode = localStorage.getItem('tcsh_mode');
   if(savedMode) setSaleMode(savedMode, false);
-  
   document.getElementById('customerName').value = localStorage.getItem('tcsh_customer') || '';
-  
   let savedCart = localStorage.getItem('tcsh_cart');
   if(savedCart) { try { cartItems = JSON.parse(savedCart); } catch(e) { cartItems = []; } }
   
-  updateCustomerInfo();
-  loadFromDB();
+  loadFromDB(); 
+  listenToFirebase(); 
   
   document.addEventListener('click', function(event) {
     let searchContainer = document.querySelector('.search-container');
     if (!searchContainer.contains(event.target)) document.getElementById('searchDropdown').style.display = 'none';
   });
 
-  // PHÍM TẮT THẦN THÁNH
   document.addEventListener('keydown', function(e) {
     if (e.key === 'F3') { e.preventDefault(); document.getElementById('searchInput').focus(); }
     
-    // Bấm Ctrl + C để chụp ảnh (Nếu user không bôi đen text nào)
-    if (e.ctrlKey && (e.key.toLowerCase() === 'c')) {
-        let selectedText = window.getSelection().toString();
-        if (e.shiftKey || !selectedText) {
-            e.preventDefault();
-            copySelectedAsImage();
+   // Mở khóa Admin bằng phím F8 (Né Chrome, né Zalo, né mọi thứ!)
+    if (e.key === 'F8') {
+        e.preventDefault();
+        let pass = prompt("Nhập mật khẩu Admin:");
+        if (pass === "123") { // Đổi mật khẩu Admin ở đây
+            document.getElementById('adminPanel').style.display = 'flex';
+        } else {
+            alert("Sai mật khẩu!");
         }
     }
-    
-    // Double ESC để Clear Checkbox
+    if (e.ctrlKey && (e.key.toLowerCase() === 'c')) {
+        let selectedText = window.getSelection().toString();
+        if (e.shiftKey || !selectedText) { e.preventDefault(); copySelectedAsImage(); }
+    }
     if (e.key === 'Escape') {
         let currentTime = new Date().getTime();
         if (currentTime - lastEscTime < 400) {
             let checkboxes = document.querySelectorAll('.row-item-check');
             for(let i=0; i<checkboxes.length; i++) { checkboxes[i].checked = false; }
             document.getElementById('checkAll').checked = false;
-            lastCheckedIndex = null;
-            updateSelectedCount();
-            showToast("Đã bỏ chọn tất cả các dòng!");
+            lastCheckedIndex = null; updateSelectedCount(); showToast("Đã bỏ chọn tất cả!");
         }
         lastEscTime = currentTime;
     }
@@ -370,25 +356,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function showToast(msg) {
-  let toast = document.getElementById("toastMsg");
-  toast.innerText = msg;
-  toast.className = "toast show";
+  let toast = document.getElementById("toastMsg"); toast.innerText = msg; toast.className = "toast show";
   setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
 }
 
 function updateSelectedCount() {
-    let checkboxes = document.querySelectorAll('.row-item-check');
-    let count = 0;
-    for(let i=0; i<checkboxes.length; i++) {
-        if(checkboxes[i].checked) count++;
-    }
+    let checkboxes = document.querySelectorAll('.row-item-check'); let count = 0;
+    for(let i=0; i<checkboxes.length; i++) { if(checkboxes[i].checked) count++; }
     let badge = document.getElementById('selectedCountBadge');
-    if(count > 0) {
-        badge.innerText = `Đã chọn: ${count} món`;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
-    }
+    if(count > 0) { badge.innerText = `Đã chọn: ${count} món`; badge.style.display = 'block';
+    } else badge.style.display = 'none';
 }
 
 function saveLocalState() {
@@ -398,49 +375,34 @@ function saveLocalState() {
 }
 
 function clearCart() {
-  if(!confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ toa hàng?")) return;
-  cartItems = [];
-  document.getElementById('customerName').value = '';
-  saveLocalState();
-  processCart();
-  document.getElementById('checkAll').checked = false;
-  lastCheckedIndex = null;
-  updateSelectedCount();
+  if(!confirm("Xóa sạch toàn bộ toa hàng?")) return;
+  cartItems = []; document.getElementById('customerName').value = ''; saveLocalState(); processCart();
+  document.getElementById('checkAll').checked = false; lastCheckedIndex = null; updateSelectedCount();
 }
 
-function debounceProcess() {
-  clearTimeout(debounceTimer);
-  saveLocalState();
-  updateCustomerInfo();
-  debounceTimer = setTimeout(processCart, 300);
-}
+function debounceProcess() { clearTimeout(debounceTimer); saveLocalState(); updateCustomerInfo(); debounceTimer = setTimeout(processCart, 300); }
 
-function updateCustomerInfo() {
-  const name = document.getElementById('customerName').value.trim();
-}
+function updateCustomerInfo() { document.getElementById('printCustomer').innerText = document.getElementById('customerName').value.trim(); }
 
 function setSaleMode(mode, doProcess = true) {
   saleMode = mode;
   document.getElementById('tab-tiem').className = mode === 'tiem' ? 'tab-btn active' : 'tab-btn';
   document.getElementById('tab-kho').className = mode === 'kho' ? 'tab-btn active' : 'tab-btn';
-  
-  let thDyn = document.getElementById('th-dynamic');
-  if (mode === 'tiem') { thDyn.innerText = 'TIỆM'; } 
-  else { thDyn.innerText = 'KHO'; }
-  
-  saveLocalState();
-  if(doProcess) processCart();
+  document.getElementById('th-dynamic').innerText = mode === 'tiem' ? 'TIỆM' : 'KHO';
+  saveLocalState(); if(doProcess) processCart();
 }
 
 // ==========================================
-// KẾT NỐI DATABASE
+// DATABASE CỤC BỘ
 // ==========================================
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = function(e) { if (!e.target.result.objectStoreNames.contains(STORE_NAME)) e.target.result.createObjectStore(STORE_NAME); };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = function(e) { 
+        if (e.oldVersion < DB_VERSION) try { e.target.result.deleteObjectStore(STORE_NAME); } catch(err) {}
+        if (!e.target.result.objectStoreNames.contains(STORE_NAME)) e.target.result.createObjectStore(STORE_NAME); 
+    };
+    request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
   });
 }
 
@@ -449,224 +411,252 @@ async function saveToDB(key, data) { try { const db = await openDB(); db.transac
 async function loadFromDB() {
   try {
     const db = await openDB(); const store = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME);
-    const getSV = new Promise(res => { store.get('fileDataSV').onsuccess = e => res(e.target.result || {}); });
-    const getKho = new Promise(res => { store.get('fileDataKho').onsuccess = e => res(e.target.result || {}); });
-    const getTiem = new Promise(res => { store.get('fileDataTiem').onsuccess = e => res(e.target.result || {}); });
-    [fileDataSV, fileDataKho, fileDataTiem] = await Promise.all([getSV, getKho, getTiem]);
+    const getProm = (k) => new Promise(res => { store.get(k).onsuccess = e => res(e.target.result || {}); });
+    [dmvtTiem, dmvtKho, tonSV, tonKho, tonTiem] = await Promise.all([getProm('dmvtTiem'), getProm('dmvtKho'), getProm('tonSV'), getProm('tonKho'), getProm('tonTiem')]);
     mergeDatasets();
   } catch (err) {}
 }
 
-async function fetchDataFromServer() {
-  const dbStatus = document.getElementById('dbStatus'); dbStatus.innerText = '⏳ Đang kéo Data...';
-  try {
-    const timestamp = new Date().getTime();
-    const [svRes, khoRes, tiemRes] = await Promise.all([ fetch('./SV.xlsx?v=' + timestamp), fetch('./KHO.xlsx?v=' + timestamp), fetch('./TIEM.xlsx?v=' + timestamp) ]);
-    if (!svRes.ok || !khoRes.ok || !tiemRes.ok) throw new Error('Không tìm thấy file chuẩn trên Server');
+// ==========================================
+// TÍNH NĂNG ADMIN NÉN EXCEL SIÊU TỐC
+// ==========================================
+function parseExcelToJSON(file, type) {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let data = new Uint8Array(e.target.result);
+                let wb = XLSX.read(data, { type: 'array' });
+                let rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                let result = {};
+                
+                if (type === 'DMVT_TIEM' || type === 'DMVT_KHO') {
+                    // Cấu trúc Kiotviet chuẩn: [1] Nhóm, [2] Mã, [4] Tên, [14] ĐVT, [23] Mô tả, [25] Vị trí
+                    for (let i = 1; i < rows.length; i++) {
+                        let c = (rows[i][2] || '').toString().trim();
+                        if (!c) continue;
+                        if (type === 'DMVT_TIEM') {
+                            result[c] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
+                        } else {
+                            result[c] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
+                        }
+                    }
+                } 
+                else if (type === 'TON_SV') {
+                    for (let i = 1; i < rows.length; i++) {
+                        let c = (rows[i][0] || '').toString().trim();
+                        if (c) result[c] = parseFloat(rows[i][6]) || 0;
+                    }
+                } 
+                else if (type === 'TON_TIEM' || type === 'TON_KHO') {
+                    // CÔNG NGHỆ NHẬN DIỆN CỘT THÔNG MINH
+                    let colCode = 0, colTon = 1; let startRow = 0;
+                    for(let j=0; j<Math.min(rows.length, 10); j++) {
+                         let r = rows[j]; if(!r) continue;
+                         for(let k=0; k<r.length; k++) {
+                             let val = (r[k]||'').toString().toLowerCase().trim();
+                             if(val.includes('mã')) { colCode = k; startRow = j; }
+                             if(val.includes('tồn kho') || val === 'tồn' || val === 'sl') { colTon = k; startRow = j; }
+                         }
+                    }
+                    for (let i = startRow + 1; i < rows.length; i++) {
+                        let c = (rows[i][colCode] || '').toString().trim();
+                        if (c) result[c] = parseFloat(rows[i][colTon]) || 0;
+                    }
+                }
+                resolve(result);
+            } catch(err) { reject(err); }
+        };
+        reader.onerror = reject; reader.readAsArrayBuffer(file);
+    });
+}
 
-    const [svData, khoData, tiemData] = await Promise.all([svRes.arrayBuffer(), khoRes.arrayBuffer(), tiemRes.arrayBuffer()]);
+async function uploadFilesToFirebase() {
+    const filesDMVT = document.getElementById('fileDMVT').files;
+    const filesTonKho = document.getElementById('fileTonKho').files;
+    const status = document.getElementById('adminStatus');
 
-    let wbSV = XLSX.read(new Uint8Array(svData), { type: 'array' }); let rowsSV = XLSX.utils.sheet_to_json(wbSV.Sheets[wbSV.SheetNames[0]], { header: 1 });
-    fileDataSV = {};
-    for (let i = 1; i < rowsSV.length; i++) { const code = (rowsSV[i][0] || '').toString().trim(); if(code) fileDataSV[code] = { c: code, t: (rowsSV[i][1] || '').toString().trim(), d: (rowsSV[i][2] || '').toString().trim(), s: parseFloat(rowsSV[i][6]) || 0 }; }
+    if (filesDMVT.length === 0 && filesTonKho.length === 0) {
+        status.innerText = "❌ Bạn chưa chọn file nào!"; return;
+    }
 
-    let wbKho = XLSX.read(new Uint8Array(khoData), { type: 'array' }); let rowsKho = XLSX.utils.sheet_to_json(wbKho.Sheets[wbKho.SheetNames[0]], { header: 1 });
-    fileDataKho = {};
-    for (let i = 1; i < rowsKho.length; i++) { const code = (rowsKho[i][2] || '').toString().trim(); if(code) fileDataKho[code] = { nhom: (rowsKho[i][1] || '').toString().trim(), t: (rowsKho[i][4] || '').toString().trim(), d: (rowsKho[i][14] || '').toString().trim(), k: parseFloat(rowsKho[i][8]) || 0, kv: (rowsKho[i][25] || '').toString().trim(), km: (rowsKho[i][23] || '').toString().trim() }; }
+    status.style.color = "#d93025";
+    status.innerText = "⏳ Đang nén dữ liệu và đẩy lên hệ thống...";
+    document.getElementById('btnUpload').disabled = true;
 
-    let wbTiem = XLSX.read(new Uint8Array(tiemData), { type: 'array' }); let rowsTiem = XLSX.utils.sheet_to_json(wbTiem.Sheets[wbTiem.SheetNames[0]], { header: 1 });
-    fileDataTiem = {};
-    for (let i = 1; i < rowsTiem.length; i++) { const code = (rowsTiem[i][2] || '').toString().trim(); if(code) fileDataTiem[code] = { nhom: (rowsTiem[i][1] || '').toString().trim(), t: (rowsTiem[i][4] || '').toString().trim(), d: (rowsTiem[i][14] || '').toString().trim(), tm: parseFloat(rowsTiem[i][8]) || 0, tv: (rowsTiem[i][25] || '').toString().trim(), tm_m: (rowsTiem[i][23] || '').toString().trim() }; }
-    
-    await Promise.all([saveToDB('fileDataSV', fileDataSV), saveToDB('fileDataKho', fileDataKho), saveToDB('fileDataTiem', fileDataTiem)]);
-    mergeDatasets(); alert('✅ Đồng bộ Tồn Kho Thành công!');
-  } catch (err) { alert('❌ LỖI: ' + err.message); dbStatus.innerText = '⚠️ Lỗi đồng bộ'; }
+    try {
+        const timestamp = new Date().getTime();
+
+        // 1. Ép DMVT
+        if (filesDMVT.length > 0) {
+            for (let i = 0; i < filesDMVT.length; i++) {
+                let f = filesDMVT[i]; let name = f.name.toUpperCase();
+                if (name.includes('TIEM')) {
+                    let data = await parseExcelToJSON(f, 'DMVT_TIEM');
+                    await database.ref('data/dmvtTiem').set(data);
+                } else if (name.includes('KHO')) {
+                    let data = await parseExcelToJSON(f, 'DMVT_KHO');
+                    await database.ref('data/dmvtKho').set(data);
+                }
+            }
+            await database.ref('updates/dmvt').set(timestamp);
+        }
+
+        // 2. Ép Tồn Kho
+        if (filesTonKho.length > 0) {
+            for (let i = 0; i < filesTonKho.length; i++) {
+                let f = filesTonKho[i]; let name = f.name.toUpperCase();
+                if (name.includes('TIEM')) {
+                    let data = await parseExcelToJSON(f, 'TON_TIEM');
+                    await database.ref('data/tonTiem').set(data);
+                } else if (name.includes('KHO')) {
+                    let data = await parseExcelToJSON(f, 'TON_KHO');
+                    await database.ref('data/tonKho').set(data);
+                } else if (name.includes('SV')) {
+                    let data = await parseExcelToJSON(f, 'TON_SV');
+                    await database.ref('data/tonSV').set(data);
+                }
+            }
+            await database.ref('updates/tonkho').set(timestamp);
+        }
+
+        status.style.color = "#15803d";
+        status.innerText = "✅ THÀNH CÔNG! Dữ liệu đã vào Cloud mượt mà.";
+        document.getElementById('fileDMVT').value = ""; document.getElementById('fileTonKho').value = "";
+        setTimeout(() => { document.getElementById('adminPanel').style.display = 'none'; status.innerText = ""; }, 2500);
+
+    } catch (err) {
+        console.error(err); status.innerText = "❌ Lỗi ép dữ liệu: " + err.message;
+    } finally { document.getElementById('btnUpload').disabled = false; }
+}
+
+// ==========================================
+// CLOUD SYNC (Lắng nghe thời gian thực)
+// ==========================================
+function listenToFirebase() {
+    database.ref('updates/dmvt').on('value', (snap) => {
+        const val = snap.val(); if (val && val !== lastCloudUpdate.dmvt) { lastCloudUpdate.dmvt = val; pullData('dmvt'); }
+    });
+    database.ref('updates/tonkho').on('value', (snap) => {
+        const val = snap.val(); if (val && val !== lastCloudUpdate.tonkho) { lastCloudUpdate.tonkho = val; pullData('tonkho'); }
+    });
+}
+
+async function pullData(type) {
+    const dbStatus = document.getElementById('dbStatus'); 
+    dbStatus.innerText = '⏳ Đang kéo Data mới...';
+    try {
+        if (type === 'dmvt') {
+            const snapT = await database.ref('data/dmvtTiem').once('value'); dmvtTiem = snapT.val() || {};
+            const snapK = await database.ref('data/dmvtKho').once('value'); dmvtKho = snapK.val() || {};
+            await Promise.all([saveToDB('dmvtTiem', dmvtTiem), saveToDB('dmvtKho', dmvtKho)]);
+        }
+        if (type === 'tonkho') {
+            const snapT = await database.ref('data/tonTiem').once('value'); tonTiem = snapT.val() || {};
+            const snapK = await database.ref('data/tonKho').once('value'); tonKho = snapK.val() || {};
+            const snapS = await database.ref('data/tonSV').once('value'); tonSV = snapS.val() || {};
+            await Promise.all([saveToDB('tonTiem', tonTiem), saveToDB('tonKho', tonKho), saveToDB('tonSV', tonSV)]);
+        }
+        mergeDatasets(); showToast("✅ Đồng bộ Cloud hoàn tất cực nhanh!");
+    } catch (err) { dbStatus.innerText = '⚠️ Lỗi mạng Cloud'; }
 }
 
 function mergeDatasets() {
-  const allCodes = new Set([ ...Object.keys(fileDataSV), ...Object.keys(fileDataKho), ...Object.keys(fileDataTiem) ]);
+  const allCodes = new Set([ ...Object.keys(dmvtTiem||{}), ...Object.keys(dmvtKho||{}), ...Object.keys(tonSV||{}) ]);
   RAW_ITEMS = Array.from(allCodes).map(code => {
-    const sv = fileDataSV[code] || {}; const kho = fileDataKho[code] || {}; const tiem = fileDataTiem[code] || {};
-    return { c: code, nhom: kho.nhom || tiem.nhom || '', t: sv.t || kho.t || tiem.t || '', d: sv.d || kho.d || tiem.d || '', s: sv.s || 0, k: kho.k || 0, kv: kho.kv || '', km: kho.km || '', tm: tiem.tm || 0, tv: tiem.tv || '', tm_m: tiem.tm_m || '' };
+    const dt = dmvtTiem[code] || {}; const dk = dmvtKho[code] || {}; 
+    return { 
+        c: code, 
+        nhom: dk.n || dt.n || '', t: dk.t || dt.t || '', d: dk.d || dt.d || '', 
+        kv: dk.v || '', km: dk.m || '', tv: dt.v || '', tm_m: dt.m || '',
+        s: tonSV[code] || 0, k: tonKho[code] || 0, tm: tonTiem[code] || 0 
+    };
   });
   buildIndex(RAW_ITEMS);
 }
 
+// ==========================================
+// CÁC HÀM XỬ LÝ (TÌM KIẾM, RENDER BẢNG, CHỤP ẢNH) GIỮ NGUYÊN HOÀN TOÀN
+// ==========================================
 function removeVietnameseTones(str) {
   if (!str) return ''; str = str.toLowerCase();
   str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a"); str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e"); str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
   str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o"); str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u"); str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y"); str = str.replace(/đ/g, "d"); str = str.replace(/[\u0300-\u036f]/g, ""); return str;
 }
-
-function normalizeCode(c) { 
-    if (!c) return '';
-    return c.toString().replace(/^['"`‘’\s]+/g, '').replace(/[.\s]+$/g, '').replace(/[- \t\r\n'"`‘’]/g, '').toUpperCase(); 
-}
+function normalizeCode(c) { return (!c) ? '' : c.toString().replace(/^['"`‘’\s]+/g, '').replace(/[.\s]+$/g, '').replace(/[- \t\r\n'"`‘’]/g, '').toUpperCase(); }
 
 function buildIndex(items) {
   itemDatabase = items.map(item => ({ ...item, cleanCode: normalizeCode(item.c), normName: removeVietnameseTones(item.t), fullSearchText: normalizeCode(item.c) + ' ' + removeVietnameseTones(item.t) + ' ' + (item.t||'').toLowerCase() }));
-  document.getElementById('dbStatus').innerText = itemDatabase.length > 0 ? `✅ Sẵn sàng (${itemDatabase.length.toLocaleString('vi-VN')} món)` : '⚠️ Chưa có dữ liệu';
+  cartItems.forEach(cItem => { let fItem = itemDatabase.find(i => i.cleanCode === cItem.cleanCode); if(fItem) { cItem.k = fItem.k; cItem.tm = fItem.tm; cItem.s = fItem.s; } });
+  document.getElementById('dbStatus').innerText = itemDatabase.length > 0 ? `⚡ Đã kết nối Cloud (${itemDatabase.length.toLocaleString('vi-VN')} món)` : '⚠️ Chưa có dữ liệu';
   processCart();
 }
 
-// ==========================================
-// TÍNH NĂNG TÌM KIẾM THÔNG MINH
-// ==========================================
 function handleSearchInput() {
-  let query = document.getElementById('searchInput').value.trim();
-  let dropdown = document.getElementById('searchDropdown');
-  
+  let query = document.getElementById('searchInput').value.trim(); let dropdown = document.getElementById('searchDropdown');
   if(query.length < 2) { dropdown.style.display = 'none'; return; }
-  
-  let qClean = normalizeCode(query); 
-  let qNorm = removeVietnameseTones(query); 
-  let tokens = qNorm.split(/[\s,;+-_]+/).filter(t => t.length > 0);
-  let results = [];
-  
-  let upperQuery = query.toUpperCase();
+  let qClean = normalizeCode(query); let qNorm = removeVietnameseTones(query); let tokens = qNorm.split(/[\s,;+-_]+/).filter(t => t.length > 0);
+  let results = []; let upperQuery = query.toUpperCase();
 
   itemDatabase.forEach(item => {
-      let score = 0;
-      let rawCode = item.c.toUpperCase();
-      
-      if (rawCode === upperQuery || item.cleanCode === qClean) {
-          score = 10000;
-      } 
-      else if (rawCode.startsWith(upperQuery) || item.cleanCode.startsWith(qClean)) {
-          score = 5000 - item.cleanCode.length; 
-      } 
-      else if (rawCode.includes(upperQuery) || item.cleanCode.includes(qClean)) {
-          score = 1000 - item.cleanCode.length;
-      }
-      
+      let score = 0; let rawCode = item.c.toUpperCase();
+      if (rawCode === upperQuery || item.cleanCode === qClean) score = 10000;
+      else if (rawCode.startsWith(upperQuery) || item.cleanCode.startsWith(qClean)) score = 5000 - item.cleanCode.length; 
+      else if (rawCode.includes(upperQuery) || item.cleanCode.includes(qClean)) score = 1000 - item.cleanCode.length;
       if (score < 1000 && tokens.length > 0) {
-          let nameMatch = true;
-          for(let token of tokens) { if (!item.fullSearchText.includes(token)) { nameMatch = false; break; } }
-          if (nameMatch) {
-              score = 500 + item.s; 
-          }
+          let nameMatch = true; for(let token of tokens) { if (!item.fullSearchText.includes(token)) { nameMatch = false; break; } }
+          if (nameMatch) score = 500 + item.s; 
       }
-      
-      if (score > 0) {
-          results.push({ item: item, score: score });
-      }
+      if (score > 0) results.push({ item: item, score: score });
   });
   
-  results.sort((a, b) => b.score - a.score);
-  results = results.slice(0, 50).map(r => r.item);
-  
+  results.sort((a, b) => b.score - a.score); results = results.slice(0, 50).map(r => r.item);
   if(results.length === 0) { dropdown.style.display = 'none'; return; }
   
   dropdown.innerHTML = '';
   results.forEach(item => {
       let div = document.createElement('div'); div.className = 'search-item';
-      let tm = item.tm; let k = item.k; let s = item.s;
-      if (k < s && tm === 0) tm = s - k;
-      
-      let activeStock = saleMode === 'tiem' ? tm : k;
-      let activeLabel = saleMode === 'tiem' ? 'Tiệm' : 'Kho';
-      
+      let tm = item.tm; let k = item.k; let s = item.s; if (k < s && tm === 0) tm = s - k;
+      let activeStock = saleMode === 'tiem' ? tm : k; let activeLabel = saleMode === 'tiem' ? 'Tiệm' : 'Kho';
       div.innerHTML = `
-          <div class="search-item-row">
-            <span class="search-item-title" title="${item.t}">${item.t || 'Chưa có tên'}</span>
-            <span class="search-item-unit">${item.d || 'Cái'}</span>
-          </div>
-          <div class="search-item-row" style="margin-top: 4px;">
-            <span class="search-item-code">${item.c}</span>
-            <div class="search-stock-wrap">
-               <span style="color: var(--ton-color);">Tồn ${activeLabel}:${activeStock}</span>
-               <span style="color: #ccc;">|</span>
-               <span style="color: var(--sv-color);">Tổng SV: ${s}</span>
-            </div>
-          </div>
-      `;
-      div.onclick = function() { addToCart(item.c); };
-      dropdown.appendChild(div);
+          <div class="search-item-row"><span class="search-item-title" title="${item.t}">${item.t || 'Chưa có tên'}</span><span class="search-item-unit">${item.d || 'Cái'}</span></div>
+          <div class="search-item-row" style="margin-top: 4px;"><span class="search-item-code">${item.c}</span><div class="search-stock-wrap"><span style="color: var(--ton-color);">Tồn ${activeLabel}:${activeStock}</span><span style="color: #ccc;">|</span><span style="color: var(--sv-color);">Tổng SV: ${s}</span></div></div>`;
+      div.onclick = function() { addToCart(item.c); }; dropdown.appendChild(div);
   });
   dropdown.style.display = 'block';
 }
 
 function addToCart(code, qty = 1, fromOCR = false) {
-    let qClean = normalizeCode(code);
-    let matchedItem = itemDatabase.find(x => x.cleanCode === qClean);
-    
+    let qClean = normalizeCode(code); let matchedItem = itemDatabase.find(x => x.cleanCode === qClean);
     if(!matchedItem) matchedItem = itemDatabase.find(x => x.c.toUpperCase() === code.toUpperCase());
-    
-    if(!matchedItem) {
-        if(fromOCR) cartItems.push({ code: code, ten: code, isUnknown: true, qty: qty });
-        else alert("Mã không tồn tại!"); 
-        return;
-    }
+    if(!matchedItem) { if(fromOCR) cartItems.push({ code: code, ten: code, isUnknown: true, qty: qty }); else alert("Mã không tồn tại!"); return; }
     
     let existIndex = cartItems.findIndex(x => x.cleanCode === matchedItem.cleanCode);
-    if(existIndex > -1) {
-        cartItems[existIndex].qty += qty;
-        lastHighlightId = matchedItem.cleanCode;
-    } else {
-        cartItems.push({
-            c: matchedItem.c, cleanCode: matchedItem.cleanCode, t: matchedItem.t, d: matchedItem.d, s: matchedItem.s, k: matchedItem.k, tm: matchedItem.tm,
-            kv: matchedItem.kv, km: matchedItem.km, tv: matchedItem.tv, tm_m: matchedItem.tm_m, nhom: matchedItem.nhom,
-            qty: qty, isUnknown: false
-        });
-        lastHighlightId = matchedItem.cleanCode;
-    }
+    if(existIndex > -1) { cartItems[existIndex].qty += qty; lastHighlightId = matchedItem.cleanCode; } 
+    else { cartItems.push({ c: matchedItem.c, cleanCode: matchedItem.cleanCode, t: matchedItem.t, d: matchedItem.d, s: matchedItem.s, k: matchedItem.k, tm: matchedItem.tm, kv: matchedItem.kv, km: matchedItem.km, tv: matchedItem.tv, tm_m: matchedItem.tm_m, nhom: matchedItem.nhom, qty: qty, isUnknown: false }); lastHighlightId = matchedItem.cleanCode; }
     
-    document.getElementById('searchInput').value = '';
-    document.getElementById('searchDropdown').style.display = 'none';
-    document.getElementById('searchInput').focus();
-    
-    saveLocalState(); processCart();
+    document.getElementById('searchInput').value = ''; document.getElementById('searchDropdown').style.display = 'none'; document.getElementById('searchInput').focus(); saveLocalState(); processCart();
 }
 
 function removeFromCart(index) { cartItems.splice(index, 1); saveLocalState(); processCart(); }
-
-function adjustQty(index, delta) {
-    let current = cartItems[index].qty;
-    let newVal = current + delta;
-    if (newVal < 1) newVal = 1;
-    updateQty(index, newVal);
-}
-
-function updateQty(originalIndex, newQty) {
-  let val = parseInt(newQty, 10); if (isNaN(val) || val < 1) val = 1;
-  cartItems[originalIndex].qty = val;
-  saveLocalState(); processCart();
-}
+function adjustQty(index, delta) { let newVal = cartItems[index].qty + delta; updateQty(index, newVal < 1 ? 1 : newVal); }
+function updateQty(originalIndex, newQty) { let val = parseInt(newQty, 10); if (isNaN(val) || val < 1) val = 1; cartItems[originalIndex].qty = val; saveLocalState(); processCart(); }
 
 function handleRowCheck(event, index) {
-    let checkboxes = document.querySelectorAll('.row-item-check');
-    let clickedCb = event.target;
-    
-    if (event.shiftKey && lastCheckedIndex !== null) {
-        let start = Math.min(lastCheckedIndex, index);
-        let end = Math.max(lastCheckedIndex, index);
-        for (let i = start; i <= end; i++) {
-            checkboxes[i].checked = clickedCb.checked;
-        }
-    }
-    lastCheckedIndex = index;
-    updateSelectedCount();
+    let checkboxes = document.querySelectorAll('.row-item-check'); let clickedCb = event.target;
+    if (event.shiftKey && lastCheckedIndex !== null) { let start = Math.min(lastCheckedIndex, index); let end = Math.max(lastCheckedIndex, index); for (let i = start; i <= end; i++) checkboxes[i].checked = clickedCb.checked; }
+    lastCheckedIndex = index; updateSelectedCount();
 }
 
-function toggleAllChecks(source) {
-  let checkboxes = document.querySelectorAll('.row-item-check');
-  for(let i=0; i<checkboxes.length; i++) { checkboxes[i].checked = source.checked; }
-  lastCheckedIndex = null;
-  updateSelectedCount();
-}
+function toggleAllChecks(source) { let checkboxes = document.querySelectorAll('.row-item-check'); for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = source.checked; lastCheckedIndex = null; updateSelectedCount(); }
 
-// ==========================================
-// TÍNH NĂNG QUÉT OCR
-// ==========================================
 function handleMediaUpload(files) {
   if (!files || files.length === 0) return; let file = files[0]; let ext = file.name.split('.').pop().toLowerCase();
-  
   if (['xlsx', 'xls', 'csv'].includes(ext)) {
     let reader = new FileReader();
     reader.onload = function(e) {
       let data = new Uint8Array(e.target.result); let workbook = XLSX.read(data, { type: 'array' });
-      let sheetName = workbook.SheetNames[0]; let jsonRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-      
+      let jsonRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
       let colCode = -1; let colQty = -1; let headerIdx = -1;
       for (let rIdx = 0; rIdx < Math.min(jsonRows.length, 10); rIdx++) {
         let row = jsonRows[rIdx]; if (!row || !Array.isArray(row)) continue;
@@ -676,7 +666,6 @@ function handleMediaUpload(files) {
           if (['số lượng', 'sl', 'qty', 'quantity', 'soluong'].includes(cellStr)) colQty = cIdx;
         } if (colCode !== -1) { headerIdx = rIdx; break; }
       }
-
       if (headerIdx !== -1 && colCode !== -1) {
         for (let r = headerIdx + 1; r < jsonRows.length; r++) {
           let row = jsonRows[r]; if (!row || row[colCode] === undefined || row[colCode] === null) continue;
@@ -691,28 +680,19 @@ function handleMediaUpload(files) {
     showToast("Đang xử lý hình ảnh OCR... Vui lòng đợi trong giây lát");
     Tesseract.recognize(file, 'vie+eng').then(({ data }) => {
       let lines = data.text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-      lines.forEach(line => {
-         let qty = 1; let codeStr = line;
-         let match = line.match(/(.*?)\s+(?:sl|x|-|)\s*(\d+)/i);
-         if(match) { codeStr = match[1].trim(); qty = parseInt(match[2], 10) || 1; }
-         if(codeStr) addToCart(codeStr, qty, true);
-      });
+      lines.forEach(line => { let qty = 1; let codeStr = line; let match = line.match(/(.*?)\s+(?:sl|x|-|)\s*(\d+)/i); if(match) { codeStr = match[1].trim(); qty = parseInt(match[2], 10) || 1; } if(codeStr) addToCart(codeStr, qty, true); });
     }).catch(err => alert("Không thể nhận diện ảnh."));
   }
 }
 
-// ==========================================
-// ENGINE ĐIỀU HƯỚNG VÀ RENDER
-// ==========================================
 function evaluateItemDecision(tiem_ton, kho_ton, sv_ton, qty, targetMatched) {
   let decision = ''; let targetLoc = ''; let targetMota = ''; let tagClass = ''; let isOut = false;
   let getLocKho = () => ({ loc: targetMatched.kv || targetMatched.tv || 'Chưa có vị trí', mota: targetMatched.km || targetMatched.tm_m || '' });
   let getLocTiem = () => ({ loc: targetMatched.tv || targetMatched.kv || 'Chưa có vị trí', mota: targetMatched.tm_m || targetMatched.km || '' });
-
-  if (sv_ton <= 0) { decision = '❌ HẾT HÀNG'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
-  } else if (qty <= 0) { decision = '➖ CHƯA NHẬP SL'; tagClass = 'tag-warn'; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
-  } else if (sv_ton < qty) { decision = '❌ THIẾU HÀNG (' + sv_ton + '/' + qty + ')'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
-  } else if (saleMode === 'tiem') {
+  if (sv_ton <= 0) { decision = '❌ HẾT HÀNG'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; }
+  else if (qty <= 0) { decision = '➖ CHƯA NHẬP SL'; tagClass = 'tag-warn'; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; } 
+  else if (sv_ton < qty) { decision = '❌ THIẾU HÀNG (' + sv_ton + '/' + qty + ')'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; } 
+  else if (saleMode === 'tiem') {
     let locInfo = getLocTiem(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
     if (tiem_ton >= qty) { decision = '🏪 LẤY TẠI TIỆM'; tagClass = 'tag-tiem'; }
     else if (tiem_ton > 0) { decision = '⚠️ TIỆM (' + tiem_ton + ') + KHO (' + (qty-tiem_ton>kho_ton?kho_ton:qty-tiem_ton) + ')'; tagClass = 'tag-warn'; }
@@ -731,9 +711,7 @@ function getPerson(locStr, metaPerson) { if (metaPerson && metaPerson !== '0') r
 function getSortRank(locStr) {
   if (!locStr) return 999999; let str = locStr.toUpperCase(); let rank = 100000;
   if (str.includes('TRỆT') || str.includes('CHỆT')) rank = 10000; else if (str.includes('LẦU 1') || str.includes('LAU 1')) rank = 20000; else if (str.includes('LẦU 2') || str.includes('LAU 2')) rank = 30000; else if (str.includes('LẦU 3') || str.includes('LAU 3')) rank = 40000;
-  let keM = str.match(/KỆ\s*([0-9]+)/); if (keM) rank += parseInt(keM[1]) * 100;
-  let tangM = str.match(/TẦNG\s*([0-9]+)/); if (tangM) rank += parseInt(tangM[1]) * 10;
-  let oM = str.match(/Ô\s*([0-9]+)/); if (oM) rank += parseInt(oM[1]); return rank;
+  let keM = str.match(/KỆ\s*([0-9]+)/); if (keM) rank += parseInt(keM[1]) * 100; let tangM = str.match(/TẦNG\s*([0-9]+)/); if (tangM) rank += parseInt(tangM[1]) * 10; let oM = str.match(/Ô\s*([0-9]+)/); if (oM) rank += parseInt(oM[1]); return rank;
 }
 
 function processCart() {
@@ -741,25 +719,16 @@ function processCart() {
     document.getElementById('resultBody').innerHTML = '<tr><td colspan="12" style="text-align:center; color:#9aa0a6; padding:40px; background: transparent; border-bottom: none;">🔍 Sử dụng thanh tìm kiếm phía trên để thêm hàng vào toa...</td></tr>';
     document.getElementById('outAlert').style.display = 'none'; return;
   }
-
   let results = []; let outOfStockList = [];
-  
   cartItems.forEach((item, originalIndex) => {
-    if(item.isUnknown) {
-        results.push({ decision: '❓ KHÔNG TÌM THẤY', tagClass: 'tag-out', code: '-', ten: item.code, dvt: '-', qty: item.qty, tiem_ton: 0, kho_ton: 0, sv_ton: 0, vitri: 'Chưa có thông tin', short_loc: '-', person: '-', rank: 999999, matchedObj: null, originalIndex: originalIndex, rowId: 'row-unknown-' + originalIndex });
-        return;
-    }
-    
+    if(item.isUnknown) { results.push({ decision: '❓ KHÔNG TÌM THẤY', tagClass: 'tag-out', code: '-', ten: item.code, dvt: '-', qty: item.qty, tiem_ton: 0, kho_ton: 0, sv_ton: 0, vitri: 'Chưa có thông tin', short_loc: '-', person: '-', rank: 999999, matchedObj: null, originalIndex: originalIndex, rowId: 'row-unknown-' + originalIndex }); return; }
     let code = item.c; let ten = item.t || 'Chưa có tên'; let dvt = item.d || 'Cái';
     let tiem_ton = item.tm || 0; let kho_ton = item.k || 0; let sv_ton = item.s || 0;
     if (kho_ton < sv_ton && tiem_ton === 0) tiem_ton = sv_ton - kho_ton;
-
     let res = evaluateItemDecision(tiem_ton, kho_ton, sv_ton, item.qty, item);
     if (res.isOut) outOfStockList.push(code + ' (' + ten + ')');
-
     results.push({ decision: res.decision, tagClass: res.tagClass, code: code, ten: ten, dvt: dvt, qty: item.qty, tiem_ton: tiem_ton, kho_ton: kho_ton, sv_ton: sv_ton, vitri: res.targetLoc, short_loc: getShortLoc(res.targetLoc), person: getPerson(res.targetLoc, res.targetMota), rank: getSortRank(res.targetLoc), matchedObj: item, originalIndex: originalIndex, rowId: 'row-' + item.cleanCode });
   });
-  
   renderTableResults(results, outOfStockList);
 }
 
@@ -776,15 +745,10 @@ function renderTableResults(results, outOfStockList) {
       if (loc.includes('LINH')) return 50;
       if (loc.includes('VIỆT') || loc.includes('VIET')) {
           let nhom = (r.matchedObj && r.matchedObj.nhom ? r.matchedObj.nhom : '').toUpperCase(); let ten = (r.ten || '').toUpperCase(); let groupText = nhom + ' ' + ten; 
-          if (groupText.includes('RUỘT') || groupText.includes('RUOT')) return 61;
-          if (groupText.includes('NHỚT') || groupText.includes('NHOT')) return 62;
-          if (groupText.includes('VỎ') || groupText.includes('VÕ')) return 63;
-          if (groupText.includes('MỦ ZIN') || groupText.includes('MU ZIN')) return 64;
-          return 65;
+          if (groupText.includes('RUỘT') || groupText.includes('RUOT')) return 61; if (groupText.includes('NHỚT') || groupText.includes('NHOT')) return 62; if (groupText.includes('VỎ') || groupText.includes('VÕ')) return 63; if (groupText.includes('MỦ ZIN') || groupText.includes('MU ZIN')) return 64; return 65;
       }
       return 69;
     };
-
     let scoreA = getScore(a); let scoreB = getScore(b);
     if (scoreA !== scoreB) return scoreA - scoreB;
     let getLocOwner = (loc) => { if (!loc) return '-'; let m = loc.match(/\(\s*(.*?)\s*\)/); return m ? m[1].toUpperCase().trim() : '-'; };
@@ -792,24 +756,13 @@ function renderTableResults(results, outOfStockList) {
     if (ownerA !== ownerB) { if (ownerA === '-') return 1; if (ownerB === '-') return -1; return ownerA.localeCompare(ownerB); }
     return (a.rank || 999999) - (b.rank || 999999);
   });
-
-  lastResults = results;
-  let tbody = document.getElementById('resultBody'); tbody.innerHTML = '';
-  
+  lastResults = results; let tbody = document.getElementById('resultBody'); tbody.innerHTML = '';
   results.forEach((r, idx) => {
     let dynamicStockCell = saleMode === 'tiem' ? `<td class="col-ton stock-num color-ton snap-data">${r.tiem_ton}</td>` : `<td class="col-ton stock-num color-ton snap-data">${r.kho_ton}</td>`;
-    
-    let trClass = '';
-    if (lastHighlightId === (r.matchedObj ? r.matchedObj.cleanCode : null)) trClass = 'highlight-row';
+    let trClass = lastHighlightId === (r.matchedObj ? r.matchedObj.cleanCode : null) ? 'highlight-row' : '';
+    let locText = (r.vitri || '').toUpperCase(); let bgClass = '';
+    if (locText.includes('TRỆT') || locText.includes('CHỆT')) bgClass = 'bg-tret'; else if (locText.includes('LẦU 1') || locText.includes('LAU 1')) bgClass = 'bg-lau1'; else if (locText.includes('LẦU 2') || locText.includes('LAU 2')) bgClass = 'bg-lau2'; else if (locText.includes('LẦU 3') || locText.includes('LAU 3')) bgClass = 'bg-lau3';
 
-    let locText = (r.vitri || '').toUpperCase();
-    let bgClass = '';
-    if (locText.includes('TRỆT') || locText.includes('CHỆT')) bgClass = 'bg-tret';
-    else if (locText.includes('LẦU 1') || locText.includes('LAU 1')) bgClass = 'bg-lau1';
-    else if (locText.includes('LẦU 2') || locText.includes('LAU 2')) bgClass = 'bg-lau2';
-    else if (locText.includes('LẦU 3') || locText.includes('LAU 3')) bgClass = 'bg-lau3';
-
-    // RENDER
     tbody.insertAdjacentHTML('beforeend', `
       <tr id="${r.rowId}" class="${trClass}">
         <td class="col-del no-print"><button class="btn-remove-row" onclick="removeFromCart(${r.originalIndex})" title="Xóa món này">🗑️</button></td>
@@ -831,135 +784,38 @@ function renderTableResults(results, outOfStockList) {
         ${dynamicStockCell}
         <td class="col-sv stock-num color-sv snap-data">${r.sv_ton}</td>
         <td class="col-nguoi snap-hide">${r.person}</td>
-        <td class="col-check no-print">
-            <input type="checkbox" class="row-checkbox row-item-check" data-id="${r.rowId}" onclick="handleRowCheck(event, ${idx})">
-        </td>
+        <td class="col-check no-print"><input type="checkbox" class="row-checkbox row-item-check" data-id="${r.rowId}" onclick="handleRowCheck(event, ${idx})"></td>
         <td class="col-spacer no-print"></td>
       </tr>
     `);
   });
-
-  if (lastHighlightId) {
-      setTimeout(() => { let row = document.getElementById('row-' + lastHighlightId); if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); lastHighlightId = null; } }, 100);
-  }
-
+  if (lastHighlightId) { setTimeout(() => { let row = document.getElementById('row-' + lastHighlightId); if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); lastHighlightId = null; } }, 100); }
   let alertEl = document.getElementById('outAlert');
-  if (outOfStockList.length > 0) {
-    alertEl.style.display = 'block'; alertEl.innerHTML = '⚠️ <b>BÁO ĐỘNG HẾT/THIẾU HÀNG (' + outOfStockList.length + ' món):</b> ' + outOfStockList.join(' | ');
-  } else alertEl.style.display = 'none';
-  
+  if (outOfStockList.length > 0) { alertEl.style.display = 'block'; alertEl.innerHTML = '⚠️ <b>BÁO ĐỘNG HẾT/THIẾU HÀNG (' + outOfStockList.length + ' món):</b> ' + outOfStockList.join(' | '); } else alertEl.style.display = 'none';
   updateSelectedCount();
 }
 
 function copyTableData() {
   let text = `STT\tGỢI Ý SOẠN\tMã Hàng\tTên Hàng\tĐVT\tSL\tTồn ${saleMode === 'tiem' ? 'Tiệm' : 'Kho'}\tSV\tVị Trí Kệ - Tầng\tThủ Kho\n`;
-  lastResults.forEach((r, idx) => {
-     let decStr = (r.decision || '').replace(/⚠️|❌|🏪|📦|🚚/g, '').trim();
-     let dynStock = saleMode === 'tiem' ? r.tiem_ton : r.kho_ton;
-     text += `${idx + 1}\t${decStr}\t${r.code}\t${r.ten}\t${r.dvt}\t${r.qty}\t${dynStock}\t${r.sv_ton}\t${getShortLoc(r.vitri)}\t${r.person}\n`;
-  });
+  lastResults.forEach((r, idx) => { let decStr = (r.decision || '').replace(/⚠️|❌|🏪|📦|🚚/g, '').trim(); let dynStock = saleMode === 'tiem' ? r.tiem_ton : r.kho_ton; text += `${idx + 1}\t${decStr}\t${r.code}\t${r.ten}\t${r.dvt}\t${r.qty}\t${dynStock}\t${r.sv_ton}\t${getShortLoc(r.vitri)}\t${r.person}\n`; });
   navigator.clipboard.writeText(text).then(() => showToast('Đã chép nội dung text chuẩn vào Clipboard!'));
 }
 
-// ==========================================
-// TÍNH NĂNG SNAPSHOT ĐÃ FIX SIZE TỐI ƯU CHO ZALO
-// ==========================================
 async function copySelectedAsImage() {
-    let checkboxes = document.querySelectorAll('.row-item-check');
-    let hasSelection = false;
-    
-    for(let i=0; i<checkboxes.length; i++) {
-        if(checkboxes[i].checked) { hasSelection = true; break; }
-    }
-    
-    if (!hasSelection) {
-        for(let i=0; i<checkboxes.length; i++) { checkboxes[i].checked = true; }
-    }
-
-    let overlay = document.getElementById('snapOverlay');
-    overlay.style.display = 'flex'; 
-
-    let table = document.getElementById('mainTable');
-    let originalWidth = table.style.width;
-    
-    // ÉP CLASS ĐỂ THU GỌN BẢNG VÀ CẮT TÊN DÀI
-    table.classList.add('is-snapping');
-
-    let thElements = document.querySelectorAll('#mainTable th');
-    thElements.forEach(th => th.style.position = 'static');
-    
-    let tableContainer = document.getElementById('tableScrollArea');
-    let origOverflow = tableContainer.style.overflowY;
-    tableContainer.style.overflowY = 'visible';
-
-    let hideCols = document.querySelectorAll('.snap-hide, .col-del, .col-check, .col-spacer');
-    hideCols.forEach(el => el.style.display = 'none'); 
+    let checkboxes = document.querySelectorAll('.row-item-check'); let hasSelection = false;
+    for(let i=0; i<checkboxes.length; i++) { if(checkboxes[i].checked) { hasSelection = true; break; } }
+    if (!hasSelection) { for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = true; }
+    let overlay = document.getElementById('snapOverlay'); overlay.style.display = 'flex'; 
+    let table = document.getElementById('mainTable'); let originalWidth = table.style.width; table.classList.add('is-snapping');
+    let thElements = document.querySelectorAll('#mainTable th'); thElements.forEach(th => th.style.position = 'static');
+    let tableContainer = document.getElementById('tableScrollArea'); let origOverflow = tableContainer.style.overflowY; tableContainer.style.overflowY = 'visible';
+    let hideCols = document.querySelectorAll('.snap-hide, .col-del, .col-check, .col-spacer'); hideCols.forEach(el => el.style.display = 'none'); 
 
     let allRows = document.querySelectorAll('#resultBody tr');
     allRows.forEach((row) => {
-        row.classList.remove('highlight-row'); 
-        let cb = row.querySelector('.row-item-check');
-        if (cb && !cb.checked) {
-            row.style.display = 'none'; 
-        } else {
-            let qtyWrapper = row.querySelector('.qty-wrapper');
-            if(qtyWrapper) qtyWrapper.style.border = 'none';
-            let qtyBtns = row.querySelectorAll('.qty-btn');
-            qtyBtns.forEach(btn => btn.style.display = 'none');
-            let input = row.querySelector('.qty-input');
-            if(input) { input.style.border = 'none'; input.style.background = 'transparent'; }
-        }
-    });
-
-    await new Promise(r => setTimeout(r, 200));
-
-    try {
-        let canvas = await html2canvas(table, {
-            backgroundColor: "#ffffff",
-            scale: 2, 
-            logging: false,
-            useCORS: true
-        });
-
-        canvas.toBlob(function(blob) {
-            const item = new ClipboardItem({ "image/png": blob });
-            navigator.clipboard.write([item]).then(function() {
-                showToast("📸 Đã Copy ảnh Zalo thành công! Bấm Ctrl+V để dán");
-            }, function(error) {
-                showToast("Lỗi khi copy ảnh: " + error);
-            });
-        });
-    } catch(err) {
-        showToast("Có lỗi xảy ra khi tạo ảnh: " + err);
-    }
-
-    // PHỤC HỒI GIAO DIỆN
-    table.classList.remove('is-snapping');
-    hideCols.forEach(el => el.style.display = '');
-    allRows.forEach((row) => {
-        row.style.display = '';
-        let qtyWrapper = row.querySelector('.qty-wrapper');
-        if(qtyWrapper) qtyWrapper.style.border = '';
-        let qtyBtns = row.querySelectorAll('.qty-btn');
-        qtyBtns.forEach(btn => btn.style.display = '');
-        let input = row.querySelector('.qty-input');
-        if(input) { input.style.border = ''; input.style.background = ''; }
-    });
-    
-    thElements.forEach(th => th.style.position = '');
-    tableContainer.style.overflowY = origOverflow;
-    table.style.width = originalWidth;
-    table.style.margin = '';
-    
-    if(!hasSelection) {
-        let checkboxes = document.querySelectorAll('.row-item-check');
-        for(let i=0; i<checkboxes.length; i++) { checkboxes[i].checked = false; }
-    }
-    document.getElementById('checkAll').checked = false;
-    lastCheckedIndex = null;
-    updateSelectedCount();
-    overlay.style.display = 'none'; 
-}
-</script>
-</body>
-</html>
+        row.classList.remove('highlight-row'); let cb = row.querySelector('.row-item-check');
+        if (cb && !cb.checked) row.style.display = 'none'; 
+        else {
+            let qtyWrapper = row.querySelector('.qty-wrapper'); if(qtyWrapper) qtyWrapper.style.border = 'none';
+            let qtyBtns = row.querySelectorAll('.qty-btn'); qtyBtns.forEach(btn => btn.style.display = 'none');
+            let input = row.querySelector('.qty-input'); if

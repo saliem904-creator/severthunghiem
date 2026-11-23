@@ -1,921 +1,2267 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="h-full bg-slate-50">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HỆ THỐNG TRA CỨU & SOẠN HÀNG - CLOUD PRO</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#059669">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Thu Chi">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quản Lý Thu Chi & Trừ Lương</title>
 
-<!-- Chỉ dùng Firebase Database (Miễn phí), bỏ Storage -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            }
+          },
+          fontFamily: {
+            sans: ['Be Vietnam Pro', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
 
-<style>
-  :root {
-    --bg-main: #f0f2f5;
-    --bg-card: #ffffff;
-    --primary: #1976d2;
-    --border: #e2e8f0; 
-    --text-main: #000000;
-    --text-muted: #5f6368;
-    --tiem-color: #0f9d58;
-    --kho-color: #d93025;
-    --ton-color: #15803d; 
-    --sv-color: #1d4ed8;  
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  body { background-color: var(--bg-main); color: var(--text-main); font-size: 13.5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-  
-  /* --- NAVBAR --- */
-  .top-nav { display: flex; align-items: flex-end; background: #fff; padding: 10px 20px 0; border-bottom: 1px solid var(--border); gap: 20px;}
-  
-  .search-container { position: relative; padding-bottom: 10px; width: 400px;} 
-  .search-input { width: 100%; padding: 10px 15px 10px 35px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; color: #000; }
-  .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1); }
-  .search-icon { position: absolute; left: 12px; top: 12px; font-size: 14px; color: #9aa0a6; pointer-events: none;}
-  
-  .search-dropdown { position: absolute; top: 100%; left: 0; width: 130%; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 1000; max-height: 400px; overflow-y: auto; display: none; }
-  .search-item { padding: 12px 16px; border-bottom: 1px solid #f1f3f4; cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: background 0.1s;}
-  .search-item:hover { background: #f8f9fa; }
-  .search-item:last-child { border-bottom: none; }
-  
-  .search-item-row { display: flex; justify-content: space-between; align-items: center; }
-  .search-item-title { font-size: 14px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
-  .search-item-unit { font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600;}
-  .search-item-code { font-size: 13px; font-family: monospace; font-weight: 800; color: #000000; }
-  .search-stock-wrap { display: flex; gap: 10px; font-size: 12.5px; font-weight: 700; align-items: center;}
+  <!-- Google Fonts: Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  .tabs { display: flex; gap: 4px; margin-left: 20px;}
-  .tab-btn { padding: 10px 24px; background: #f8f9fa; border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 13px; transition: 0.2s; text-transform: uppercase; }
-  .tab-btn:hover { background: #f1f3f4; }
-  .tab-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 -2px 0 var(--primary) inset; }
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; padding-bottom: 8px; }
-  .status-badge { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-right: 10px;}
-  
-  .btn-tool { display: flex; align-items: center; justify-content: center; gap: 6px; background: #fff; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #000; transition: 0.2s;}
-  .btn-tool:hover { background: #f1f3f4; }
-  .btn-primary-tool { background: #e8f0fe; color: #1967d2; border-color: #d2e3fc; }
-  .btn-primary-tool:hover { background: #d2e3fc; }
-  .btn-copy-img { background: #e6f4ea; color: #137333; border-color: #ceead6;}
-  .btn-copy-img:hover { background: #ceead6;}
-  .btn-clear { color: var(--kho-color); border-color: #fad2cf; background: #fce8e6; }
-  .btn-clear:hover { background: #fad2cf; }
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  /* --- MAIN WORKSPACE --- */
-  .workspace { flex: 1; display: flex; flex-direction: column; padding: 15px 20px; overflow-y: auto; }
-  .table-card { border-radius: 8px; flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff;}
-  .table-header { padding: 10px 15px; background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
-  .header-left { display: flex; align-items: center; gap: 15px; }
-  .table-header strong { font-size: 14px; color: #000; text-transform: uppercase; margin-right: 10px; font-weight: 800;}
-  .selected-badge { background: #15803d; color: #fff; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 12px; display: none;}
-  .customer-input { width: 350px; padding: 6px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; font-weight: normal; color: #000; outline: none; background: #fff; transition: 0.2s;}
-  .customer-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1); }
-  .table-container { overflow-y: auto; flex: 1; position: relative; background: #fff;}
-  table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 13.5px; table-layout: fixed; }
-  th { position: sticky; top: 0; background: var(--bg-main); color: #000 !important; font-weight: 900 !important; padding: 10px; z-index: 10; font-size: 12.5px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; white-space: nowrap;}
-  tbody tr { background-color: #ffffff; transition: all 0.2s ease; }
-  tbody td { padding: 12px 10px; vertical-align: middle; color: #000; border-bottom: 1px solid var(--border); background-color: transparent;}
-  tbody tr:hover { background-color: #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transform: translateY(-2px); z-index: 2; position: relative; }
-  tbody tr:hover td { border-bottom-color: transparent; } 
-  tbody tr.highlight-row { animation: highlightAnim 5s ease-out forwards !important; }
-  tbody tr.highlight-row td { background-color: transparent !important; }
-  @keyframes highlightAnim { 0% { background-color: #fef08a; } 10% { background-color: #fde047; } 80% { background-color: #fef08a; } 100% { background-color: #ffffff; } }
-  
-  .col-del { width: 35px; text-align: center; }
-  .col-stt { width: 45px; text-align: center !important; }
-  .col-goi-y { width: 155px; text-align: center !important; } 
-  .col-ma { width: 130px; text-align: center !important; }
-  .col-ten { width: 300px; text-align: left !important; padding-left: 10px !important; }
-  .col-dvt { width: 50px; text-align: center !important; }
-  .col-sl { width: 75px; text-align: center !important; color: var(--kho-color); }
-  .col-ton { width: 65px; text-align: center !important; padding-left: 5px !important; padding-right: 5px !important;} 
-  .col-sv { width: 65px; text-align: center !important; padding-left: 5px !important; padding-right: 5px !important;} 
-  .col-nguoi { width: 110px; text-align: center !important; } 
-  .col-check { width: 40px; text-align: center; }
-  .col-spacer { width: auto; } 
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-  .row-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
-  .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 11.5px; white-space: nowrap; }
-  .tag-tiem { background: #e6f4ea; color: #137333; }
-  .tag-kho { background: #e8f0fe; color: #1967d2; }
-  .tag-warn { background: #fef7e0; color: #b06000; }
-  .tag-out { background: #fce8e6; color: #c5221f; }
-  
-  .code-cell { font-family: monospace; font-weight: 800; color: #000; font-size: 14px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-  .name-cell { font-weight: 600; color: #000; font-size: 14.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; white-space: normal;}
-  
-  .inline-loc { display: inline-block; margin-top: 5px; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 12px; color: #475569; border: 1px solid #cbd5e1; background: #fff;}
-  .bg-tret { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; color: #166534 !important;} 
-  .bg-lau1 { background-color: #eff6ff !important; border-color: #bfdbfe !important; color: #1e40af !important;} 
-  .bg-lau2 { background-color: #fffbeb !important; border-color: #fde68a !important; color: #92400e !important;} 
-  .bg-lau3 { background-color: #faf5ff !important; border-color: #e9d5ff !important; color: #6b21a8 !important;} 
+  <!-- Custom Styles for Mobile & Scrollbars -->
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Safe Area Insets for iOS Devices */
+    .pb-safe {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+    .pt-safe {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+    /* Mobile: chữ 16px để iPhone không tự phóng to khi bấm vào ô nhập */
+    @media (max-width: 767px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+    /* Hộp thoại luôn cuộn được khi bàn phím mở */
+    .fixed.inset-0.z-50 > div { max-height: 90dvh; overflow-y: auto; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
 
-  .stock-num { font-weight: 900; font-size: 14.5px;}
-  .color-ton { color: var(--ton-color); }
-  .color-sv { color: var(--sv-color); }
-  
-  .qty-wrapper { display: inline-flex; align-items: center; justify-content: center; gap: 2px; height: 30px; margin: 0 auto; width: 100%;}
-  .qty-btn { visibility: hidden; opacity: 0; background: none; border: none; font-size: 18px; color: var(--kho-color); cursor: pointer; width: 22px; height: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.2s;}
-  .qty-btn:hover { background: #fce8e6; border-radius: 4px;}
-  .qty-input { width: 32px; text-align: center; border: 1px solid transparent; border-bottom: 1px solid #ccc; font-weight: bold; font-size: 14px; outline: none; padding: 2px 0; color: #000; background: transparent; transition: all 0.2s;}
-  .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  tr:hover .qty-btn { visibility: visible; opacity: 1; }
-  tr:hover .qty-input { border: 1px solid var(--kho-color); border-radius: 4px; padding: 2px; }
-
-  .btn-remove-row { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 4px; display: block; margin: 0 auto; transition: 0.2s;}
-  .btn-remove-row:hover { color: var(--kho-color); transform: scale(1.1);}
-
-  .alert-box { margin: 15px 20px 0; padding: 10px 15px; border-radius: 6px; font-size: 13px; display: none; font-weight: 600; }
-  .alert-danger { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
-  #snapOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #1976d2;}
-
-  .toast { visibility: hidden; min-width: 250px; background-color: #15803d; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: bold; opacity: 0; transition: opacity 0.5s, bottom 0.5s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);}
-  .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-
-  table.is-snapping { width: 700px !important; margin: 0 auto; table-layout: fixed !important;}
-  table.is-snapping th { background-color: #f8f9fa !important; border-bottom: 1px solid #e2e8f0 !important; position: static !important; }
-  table.is-snapping .col-ma { width: 140px !important; }
-  table.is-snapping .col-ten { width: 360px !important; padding-right: 15px !important; }
-  table.is-snapping .col-dvt { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
-  table.is-snapping .col-sl { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
-  table.is-snapping .col-ton { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
-  table.is-snapping .col-sv { width: 50px !important; padding-left: 0 !important; padding-right: 0 !important; }
-  table.is-snapping .qty-wrapper { border: none; }
-  table.is-snapping .qty-btn { display: none; }
-  table.is-snapping .qty-input { width: auto; border: none !important; padding: 0 !important;}
-  table.is-snapping .inline-loc { border: 1px solid #cbd5e1; padding: 2px 6px; font-size: 11pt; background: #fff; }
-  
-  @media print {
-    body { background: #fff; height: auto; overflow: auto; padding: 0; margin: 0; }
-    .top-nav, .table-header, .no-print, .btn-remove-row, .col-check, .col-spacer { display: none !important; }
-    .workspace { padding: 0; border: none; box-shadow: none; display: block; }
-    .table-card { border: none; box-shadow: none; display: block; }
-    table { width: 700px !important; margin: 0 auto; border-collapse: collapse; border-spacing: 0; table-layout: fixed !important;}
-    th { border: none !important; border-bottom: 2px solid #000 !important; padding: 10px !important; text-align: center !important;}
-    td { border: none !important; border-bottom: 1px solid #e2e8f0 !important; padding: 12px 10px !important; text-align: center !important;}
-    th.col-ma, td.col-ma { width: 140px !important; }
-    th.col-ten, td.col-ten { width: 360px !important; text-align: left !important; }
-    th.col-dvt, td.col-dvt { width: 50px !important; padding: 0 !important; }
-    th.col-sl, td.col-sl { width: 50px !important; padding: 0 !important; }
-    th.col-ton, td.col-ton { width: 50px !important; padding: 0 !important; }
-    th.col-sv, td.col-sv { width: 50px !important; padding: 0 !important; }
-    .qty-wrapper { border: none; }
-    .qty-btn { display: none; }
-    .qty-input { width: auto; border: none !important; padding: 0 !important;}
-    .inline-loc { border: none; padding: 0; font-size: 9pt; background: transparent; }
-    .print-title { display: block !important; margin-bottom: 10px; font-size: 16pt; font-weight: bold; text-align: center; }
-  }
-  .print-title { display: none; }
-
-  /* Giao diện Admin Ẩn */
-  #adminPanel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
-  .admin-card { background: #fff; padding: 30px; border-radius: 12px; color: #000; width: 550px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
-  .admin-card h2 { margin-bottom: 5px; color: var(--primary);}
-  .admin-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px;}
-  .admin-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px;}
-  .admin-btn:hover { background: #1565c0; }
-  .file-group { margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px dashed #ced4da;}
-  .file-group label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 13px; color: var(--kho-color);}
-  .admin-close { background: #e0e0e0; color: #000; margin-left: 10px; }
-  .admin-close:hover { background: #bdbdbd; }
-</style>
+  <!-- ===== CẤU HÌNH FIREBASE: dán thông tin project của bạn vào đây ===== -->
+  <script>
+    window.APP_CONFIG = {
+      firebase: {
+        apiKey: "AIzaSyBgFYH1etrYmVXZAOFme34jvoAPxztk8Qw",
+        authDomain: "quan-ly-chi-tieu-3e81e.firebaseapp.com",
+        projectId: "quan-ly-chi-tieu-3e81e",
+        storageBucket: "quan-ly-chi-tieu-3e81e.firebasestorage.app",
+        messagingSenderId: "120194166929",
+        appId: "1:120194166929:web:2271291f9fec4af3b4cf30"
+      },
+      // Sau khi tạo xong tài khoản của bạn, đổi thành false để ẩn nút "Tạo tài khoản"
+      allowSignup: true
+    };
+  </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    window.FirebaseDB = { initializeApp, getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged,
+      getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, deleteDoc };
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
 </head>
-<body>
 
-<div id="snapOverlay">📸 Đang tạo ảnh Copy Zalo...</div>
-<div id="toastMsg" class="toast"></div>
+<body class="h-full text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
+  <div id="app" class="min-h-full flex flex-col md:flex-row">
 
-<!-- Giao diện Admin Ẩn -->
-<div id="adminPanel">
-    <div class="admin-card">
-        <h2>🚀 TẢI DỮ LIỆU LÊN MÁY CHỦ</h2>
-        <p>Hệ thống tự động nén Excel siêu nhẹ trước khi đẩy lên Firebase</p>
-        <div class="file-group">
-            <label>1. Tải lên DANH MỤC (Tên file phải chứa chữ "TIEM" hoặc "KHO"):</label>
-            <input type="file" id="fileDMVT" accept=".xlsx,.xls,.csv" multiple>
+    <!-- LOGIN / LOADING OVERLAY -->
+    <div v-if="!authReady || (cloudConfigured && !currentUser)" class="fixed inset-0 z-[60] bg-slate-50 flex items-center justify-center p-4">
+      <div v-if="!authReady" class="text-slate-500 text-sm flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>
+      <form v-else @submit.prevent="submitAuth" class="bg-white w-full max-w-sm rounded-2xl border border-slate-200 shadow-lg p-6 space-y-4">
+        <div class="text-center">
+          <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-wallet"></i></div>
+          <h1 class="font-bold text-slate-900 text-lg mt-3">Quản Lý Chi Tiêu</h1>
+          <p class="text-xs text-slate-500">{{ authMode === 'login' ? 'Đăng nhập để xem dữ liệu của bạn' : 'Tạo tài khoản mới' }}</p>
         </div>
-        <div class="file-group">
-            <label>2. Tải lên TỒN KHO (Tên file phải chứa "TIEM", "KHO", hoặc "SV"):</label>
-            <input type="file" id="fileTonKho" accept=".xlsx,.xls,.csv" multiple>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tên đăng nhập</label>
+          <input v-model="authForm.username" type="text" autocomplete="username" autocapitalize="none" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-emerald-500">
         </div>
-        <div id="adminStatus" style="color: #15803d; font-weight: bold; margin: 10px 0; min-height: 20px;"></div>
-        <button class="admin-btn" onclick="uploadFilesToFirebase()" id="btnUpload">⬆️ Bắt Đầu Nén & Đẩy Dữ Liệu</button>
-        <button class="admin-btn admin-close" onclick="document.getElementById('adminPanel').style.display='none'">Đóng</button>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu</label>
+          <input v-model="authForm.password" type="password" :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-emerald-500">
+        </div>
+        <p v-if="authError" class="text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2">{{ authError }}</p>
+        <button type="submit" :disabled="authBusy" class="w-full py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white transition">
+          {{ authBusy ? 'Đang xử lý...' : (authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản') }}
+        </button>
+        <button v-if="allowSignup" type="button" @click="authMode = authMode === 'login' ? 'register' : 'login'; authError = ''" class="w-full text-xs font-medium text-slate-500 hover:text-slate-800">
+          {{ authMode === 'login' ? 'Chưa có tài khoản? Tạo mới' : 'Đã có tài khoản? Đăng nhập' }}
+        </button>
+      </form>
     </div>
-</div>
-
-<div class="top-nav no-print">
-  <div class="search-container">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" class="search-input" placeholder="Tìm hàng hóa (F3)" autocomplete="off" oninput="handleSearchInput()" onfocus="handleSearchInput()">
-    <div id="searchDropdown" class="search-dropdown"></div>
-  </div>
-
-  <div class="tabs">
-    <button id="tab-tiem" class="tab-btn active" onclick="setSaleMode('tiem')">🏪 CHI NHÁNH TIỆM</button>
-    <button id="tab-kho" class="tab-btn" onclick="setSaleMode('kho')">📦 CHI NHÁNH KHO</button>
-  </div>
-  
-  <div class="nav-actions">
-    <span id="dbStatus" class="status-badge">⏳ Đang kết nối Cloud...</span>
-    <label class="btn-tool btn-primary-tool">
-        📸 Quét Ảnh (OCR) / Kéo File Excel
-        <input type="file" id="mediaInput" accept="image/*,.xlsx,.xls,.csv" style="display:none;" onchange="handleMediaUpload(this.files)">
-    </label>
-    <button class="btn-tool btn-clear" onclick="clearCart()">🗑️ Xóa toa</button>
-  </div>
-</div>
-
-<div class="alert-box alert-danger" id="outAlert"></div>
-
-<div class="workspace">
-  <div class="table-card">
-    <div class="print-title">BẢNG LỘ TRÌNH SOẠN HÀNG - <span id="printCustomer"></span></div>
     
-    <div class="table-header no-print">
-      <div class="header-left">
-          <strong>📋 CHI TIẾT ĐƠN HÀNG</strong>
-          <input type="text" id="customerName" class="customer-input" placeholder="Ghi chú đơn hàng (Tên Khách Hàng)..." oninput="debounceProcess()">
-      </div>
-      
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <span id="selectedCountBadge" class="selected-badge">Đã chọn: 0 món</span>
-        <button class="btn-tool" onclick="copyTableData()">📋 Copy Text</button>
-        <button class="btn-tool btn-copy-img" onclick="copySelectedAsImage()" title="Hoặc bôi đen & bấm Ctrl+C">📸 Copy Ảnh (Ctrl+C)</button>
-        <button class="btn-tool" onclick="window.print()">🖨️ In Toa</button>
+    <!-- TOAST NOTIFICATION STACK -->
+    <div class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4">
+      <div v-for="toast in toasts" :key="toast.id" 
+           :class="[
+             'pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-lg transition-all duration-300 transform border',
+             toast.type === 'success' ? 'bg-emerald-600 text-white border-emerald-500' :
+             toast.type === 'error' ? 'bg-rose-600 text-white border-rose-500' : 'bg-slate-800 text-white border-slate-700'
+           ]">
+        <div class="flex items-center gap-3">
+          <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : toast.type === 'error' ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-circle-info'"></i>
+          <span class="text-sm font-medium">{{ toast.message }}</span>
+        </div>
+        <button @click="removeToast(toast.id)" class="text-white/80 hover:text-white text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
     </div>
-    
-    <div class="table-container" id="tableScrollArea">
-      <table id="mainTable">
-        <thead>
-          <tr>
-            <th class="col-del no-print"></th>
-            <th class="col-stt snap-hide">STT</th> 
-            <th class="col-goi-y snap-hide">GỢI Ý SOẠN</th>
-            <th class="col-ma">MÃ HÀNG</th>
-            <th class="col-ten">TÊN HÀNG</th>
-            <th class="col-dvt">ĐVT</th>
-            <th class="col-sl">SL</th>
-            <th id="th-dynamic" class="col-ton">TIỆM</th>
-            <th class="col-sv">SV</th>
-            <th class="col-nguoi snap-hide">THỦ KHO</th>
-            <th class="col-check no-print"><input type="checkbox" id="checkAll" class="row-checkbox" onclick="toggleAllChecks(this)" title="Nhấn đúp ESC để bỏ chọn"></th>
-            <th class="col-spacer no-print"></th> 
-          </tr>
-        </thead>
-        <tbody id="resultBody">
-          <tr>
-            <td colspan="12" style="text-align: center; color: #9aa0a6; padding: 40px; background: transparent; border-bottom: none;">
-              🔍 Sử dụng thanh tìm kiếm phía trên để thêm hàng vào toa...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
-<script>
-// ==========================================
-// CẤU HÌNH FIREBASE (DÁN API KEY VÀO ĐÂY)
-// ==========================================
-const firebaseConfig = {
-    apiKey: "AIzaSyA3v2QqdDJcJccWfMcv8LKIkrnuz2MZHwo",
-    authDomain: "quan-ly-kho-cf80f.firebaseapp.com",
-    databaseURL: "https://quan-ly-kho-cf80f-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "quan-ly-kho-cf80f",
-    storageBucket: "quan-ly-kho-cf80f.firebasestorage.app",
-    messagingSenderId: "917518858977",
-    appId: "1:917518858977:web:1be5d23bc40e58dad1d5a0"
-};
+    <!-- DESKTOP SIDEBAR NAVIGATION -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-5 shrink-0 select-none">
+      <!-- App Brand -->
+      <div class="flex items-center gap-3 mb-8 px-2">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-200">
+          <i class="fa-solid fa-wallet text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 tracking-tight leading-tight">Quản Lý Chi Tiêu</h1>
+          <p class="text-xs text-slate-500 font-medium">Quản lý lương & Khoản trừ</p>
+        </div>
+      </div>
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+      <!-- Navigation Links -->
+      <nav class="space-y-1.5 flex-1">
+        <button v-for="tab in tabs" :key="tab.id"
+                @click="activeTab = tab.id"
+                :class="[
+                  'w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-150',
+                  activeTab === tab.id 
+                    ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs' 
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                ]">
+          <i :class="[tab.icon, 'text-base w-5 text-center', activeTab === tab.id ? 'text-emerald-600' : 'text-slate-400']"></i>
+          <span>{{ tab.name }}</span>
+        </button>
+      </nav>
 
-// ==========================================
-// BIẾN TOÀN CỤC & MÃ HÓA KHÓA FIREBASE
-// ==========================================
-function encodeFB(str) { return str.replace(/\./g, '_dot_').replace(/\#/g, '_hash_').replace(/\$/g, '_usd_').replace(/\[/g, '_lbra_').replace(/\]/g, '_rbra_').replace(/\//g, '_slash_'); }
-function decodeFB(str) { return str.replace(/_dot_/g, '.').replace(/_hash_/g, '#').replace(/_usd_/g, '$').replace(/_lbra_/g, '[').replace(/_rbra_/g, ']').replace(/_slash_/g, '/'); }
+      <!-- Cloud Sync & Quick Info Card -->
+      <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mt-auto">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Đồng bộ</span>
+          <span :class="['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', isSynced ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700']">
+            <span :class="['w-1.5 h-1.5 rounded-full', isSynced ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500']"></span>
+            {{ isSynced ? 'Cloud Synced' : (currentUser ? 'Mất mạng' : 'Offline Mode') }}
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 leading-relaxed mb-3">
+          {{ currentUser ? 'Đăng nhập: ' + authName + '. ' : '' }}{{ isSynced ? 'Dữ liệu đồng bộ thời gian thực giữa các thiết bị.' : (currentUser ? 'Dữ liệu sẽ tự đồng bộ khi có mạng lại.' : 'Chưa cấu hình cloud — dữ liệu chỉ lưu trong trình duyệt này.') }}
+        </p>
+        <button @click="openBackupModal" class="w-full text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 rounded-lg transition text-center flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-database text-slate-400"></i>
+          Sao lưu & CSV
+        </button>
+      </div>
+    </aside>
 
-let RAW_ITEMS = []; let itemDatabase = [];
-let dmvtTiem = {}; let dmvtKho = {}; 
-let tonTiem = {}; let tonKho = {}; let tonSV = {};
-
-let saleMode = 'tiem';
-let cartItems = [];
-let debounceTimer = null; let lastHighlightId = null; let lastCheckedIndex = null; let lastEscTime = 0; 
-let lastCloudUpdate = { dmvt: 0, tonkho: 0 };
-
-const DB_NAME = 'WarehouseAppDB'; const DB_VERSION = 3; const STORE_NAME = 'datasets';
-
-window.addEventListener('DOMContentLoaded', () => {
-  let savedMode = localStorage.getItem('tcsh_mode');
-  if(savedMode) setSaleMode(savedMode, false);
-  document.getElementById('customerName').value = localStorage.getItem('tcsh_customer') || '';
-  let savedCart = localStorage.getItem('tcsh_cart');
-  if(savedCart) { try { cartItems = JSON.parse(savedCart); } catch(e) { cartItems = []; } }
-  
-  loadFromDB(); 
-  listenToFirebase(); 
-  
-  document.addEventListener('click', function(event) {
-    let searchContainer = document.querySelector('.search-container');
-    if (!searchContainer.contains(event.target)) document.getElementById('searchDropdown').style.display = 'none';
-  });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'F3') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-    
-    // Mở khóa Admin bằng phím F8
-    if (e.key === 'F8') {
-        e.preventDefault();
-        let pass = prompt("Nhập mật khẩu Admin:");
-        if (pass === "123") {
-            document.getElementById('adminPanel').style.display = 'flex';
-        } else {
-            alert("Sai mật khẩu!");
-        }
-    }
-    if (e.ctrlKey && (e.key.toLowerCase() === 'c')) {
-        let selectedText = window.getSelection().toString();
-        if (e.shiftKey || !selectedText) { e.preventDefault(); copySelectedAsImage(); }
-    }
-    if (e.key === 'Escape') {
-        let currentTime = new Date().getTime();
-        if (currentTime - lastEscTime < 400) {
-            let checkboxes = document.querySelectorAll('.row-item-check');
-            for(let i=0; i<checkboxes.length; i++) { checkboxes[i].checked = false; }
-            document.getElementById('checkAll').checked = false;
-            lastCheckedIndex = null; updateSelectedCount(); showToast("Đã bỏ chọn tất cả!");
-        }
-        lastEscTime = currentTime;
-    }
-  });
-});
-
-function showToast(msg) {
-  let toast = document.getElementById("toastMsg"); toast.innerText = msg; toast.className = "toast show";
-  setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-}
-
-function updateSelectedCount() {
-    let checkboxes = document.querySelectorAll('.row-item-check'); let count = 0;
-    for(let i=0; i<checkboxes.length; i++) { if(checkboxes[i].checked) count++; }
-    let badge = document.getElementById('selectedCountBadge');
-    if(count > 0) { badge.innerText = `Đã chọn: ${count} món`; badge.style.display = 'block';
-    } else badge.style.display = 'none';
-}
-
-function saveLocalState() {
-  localStorage.setItem('tcsh_mode', saleMode);
-  localStorage.setItem('tcsh_customer', document.getElementById('customerName').value);
-  localStorage.setItem('tcsh_cart', JSON.stringify(cartItems));
-}
-
-function clearCart() {
-  if(!confirm("Xóa sạch toàn bộ toa hàng?")) return;
-  cartItems = []; document.getElementById('customerName').value = ''; saveLocalState(); processCart();
-  document.getElementById('checkAll').checked = false; lastCheckedIndex = null; updateSelectedCount();
-}
-
-function debounceProcess() { clearTimeout(debounceTimer); saveLocalState(); updateCustomerInfo(); debounceTimer = setTimeout(processCart, 300); }
-
-function updateCustomerInfo() { document.getElementById('printCustomer').innerText = document.getElementById('customerName').value.trim(); }
-
-function setSaleMode(mode, doProcess = true) {
-  saleMode = mode;
-  document.getElementById('tab-tiem').className = mode === 'tiem' ? 'tab-btn active' : 'tab-btn';
-  document.getElementById('tab-kho').className = mode === 'kho' ? 'tab-btn active' : 'tab-btn';
-  document.getElementById('th-dynamic').innerText = mode === 'tiem' ? 'TIỆM' : 'KHO';
-  saveLocalState(); if(doProcess) processCart();
-}
-
-// ==========================================
-// DATABASE CỤC BỘ
-// ==========================================
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = function(e) { 
-        if (e.oldVersion < DB_VERSION) try { e.target.result.deleteObjectStore(STORE_NAME); } catch(err) {}
-        if (!e.target.result.objectStoreNames.contains(STORE_NAME)) e.target.result.createObjectStore(STORE_NAME); 
-    };
-    request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveToDB(key, data) { try { const db = await openDB(); db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(data, key); } catch (err) {} }
-
-async function loadFromDB() {
-  try {
-    const db = await openDB(); const store = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME);
-    const getProm = (k) => new Promise(res => { store.get(k).onsuccess = e => res(e.target.result || {}); });
-    [dmvtTiem, dmvtKho, tonSV, tonKho, tonTiem] = await Promise.all([getProm('dmvtTiem'), getProm('dmvtKho'), getProm('tonSV'), getProm('tonKho'), getProm('tonTiem')]);
-    mergeDatasets();
-  } catch (err) {}
-}
-
-// ==========================================
-// TÍNH NĂNG ADMIN NÉN EXCEL SIÊU TỐC
-// ==========================================
-function parseExcelToJSON(file, type) {
-    return new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                let data = new Uint8Array(e.target.result);
-                let wb = XLSX.read(data, { type: 'array' });
-                let rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                let result = {};
-                
-                if (type === 'DMVT_TIEM' || type === 'DMVT_KHO') {
-                    for (let i = 1; i < rows.length; i++) {
-                        let c = (rows[i][2] || '').toString().trim();
-                        if (!c) continue;
-                        let key = encodeFB(c);
-                        if (type === 'DMVT_TIEM') {
-                            result[key] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
-                        } else {
-                            result[key] = { n: rows[i][1]||'', t: rows[i][4]||'', d: rows[i][14]||'', v: rows[i][25]||'', m: rows[i][23]||'' };
-                        }
-                    }
-                } 
-                else if (type === 'TON_SV') {
-                    for (let i = 1; i < rows.length; i++) {
-                        let c = (rows[i][0] || '').toString().trim();
-                        if (c) result[encodeFB(c)] = parseFloat(rows[i][6]) || 0;
-                    }
-                } 
-                else if (type === 'TON_TIEM' || type === 'TON_KHO') {
-                    let colCode = 0, colTon = 1; let startRow = 0;
-                    for(let j=0; j<Math.min(rows.length, 10); j++) {
-                         let r = rows[j]; if(!r) continue;
-                         for(let k=0; k<r.length; k++) {
-                             let val = (r[k]||'').toString().toLowerCase().trim();
-                             if(val.includes('mã')) { colCode = k; startRow = j; }
-                             if(val.includes('tồn kho') || val === 'tồn' || val === 'sl') { colTon = k; startRow = j; }
-                         }
-                    }
-                    for (let i = startRow + 1; i < rows.length; i++) {
-                        let c = (rows[i][colCode] || '').toString().trim();
-                        if (c) result[encodeFB(c)] = parseFloat(rows[i][colTon]) || 0;
-                    }
-                }
-                resolve(result);
-            } catch(err) { reject(err); }
-        };
-        reader.onerror = reject; reader.readAsArrayBuffer(file);
-    });
-}
-
-async function uploadFilesToFirebase() {
-    const filesDMVT = document.getElementById('fileDMVT').files;
-    const filesTonKho = document.getElementById('fileTonKho').files;
-    const status = document.getElementById('adminStatus');
-
-    if (filesDMVT.length === 0 && filesTonKho.length === 0) {
-        status.innerText = "❌ Bạn chưa chọn file nào!"; return;
-    }
-
-    status.style.color = "#d93025";
-    status.innerText = "⏳ Đang nén dữ liệu và đẩy lên hệ thống...";
-    document.getElementById('btnUpload').disabled = true;
-
-    try {
-        const timestamp = new Date().getTime();
-
-        // 1. Ép DMVT
-        if (filesDMVT.length > 0) {
-            for (let i = 0; i < filesDMVT.length; i++) {
-                let f = filesDMVT[i]; let name = f.name.toUpperCase();
-                if (name.includes('TIEM')) {
-                    let data = await parseExcelToJSON(f, 'DMVT_TIEM');
-                    await database.ref('data/dmvtTiem').set(data);
-                } else if (name.includes('KHO')) {
-                    let data = await parseExcelToJSON(f, 'DMVT_KHO');
-                    await database.ref('data/dmvtKho').set(data);
-                }
-            }
-            await database.ref('updates/dmvt').set(timestamp);
-        }
-
-        // 2. Ép Tồn Kho
-        if (filesTonKho.length > 0) {
-            for (let i = 0; i < filesTonKho.length; i++) {
-                let f = filesTonKho[i]; let name = f.name.toUpperCase();
-                if (name.includes('TIEM')) {
-                    let data = await parseExcelToJSON(f, 'TON_TIEM');
-                    await database.ref('data/tonTiem').set(data);
-                } else if (name.includes('KHO')) {
-                    let data = await parseExcelToJSON(f, 'TON_KHO');
-                    await database.ref('data/tonKho').set(data);
-                } else if (name.includes('SV')) {
-                    let data = await parseExcelToJSON(f, 'TON_SV');
-                    await database.ref('data/tonSV').set(data);
-                }
-            }
-            await database.ref('updates/tonkho').set(timestamp);
-        }
-
-        status.style.color = "#15803d";
-        status.innerText = "✅ THÀNH CÔNG! Dữ liệu đã vào Cloud mượt mà.";
-        document.getElementById('fileDMVT').value = ""; document.getElementById('fileTonKho').value = "";
-        setTimeout(() => { document.getElementById('adminPanel').style.display = 'none'; status.innerText = ""; }, 2500);
-
-    } catch (err) {
-        console.error(err); status.innerText = "❌ Lỗi ép dữ liệu: " + err.message;
-    } finally { document.getElementById('btnUpload').disabled = false; }
-}
-
-// ==========================================
-// CLOUD SYNC (Lắng nghe thời gian thực)
-// ==========================================
-function listenToFirebase() {
-    database.ref('updates/dmvt').on('value', (snap) => {
-        const val = snap.val(); if (val && val !== lastCloudUpdate.dmvt) { lastCloudUpdate.dmvt = val; pullData('dmvt'); }
-    });
-    database.ref('updates/tonkho').on('value', (snap) => {
-        const val = snap.val(); if (val && val !== lastCloudUpdate.tonkho) { lastCloudUpdate.tonkho = val; pullData('tonkho'); }
-    });
-}
-
-async function pullData(type) {
-    const dbStatus = document.getElementById('dbStatus'); 
-    dbStatus.innerText = '⏳ Đang kéo Data mới...';
-    try {
-        if (type === 'dmvt') {
-            const snapT = await database.ref('data/dmvtTiem').once('value'); 
-            let rawT = snapT.val() || {}; dmvtTiem = {}; for(let k in rawT) dmvtTiem[decodeFB(k)] = rawT[k];
-            
-            const snapK = await database.ref('data/dmvtKho').once('value'); 
-            let rawK = snapK.val() || {}; dmvtKho = {}; for(let k in rawK) dmvtKho[decodeFB(k)] = rawK[k];
-            
-            await Promise.all([saveToDB('dmvtTiem', dmvtTiem), saveToDB('dmvtKho', dmvtKho)]);
-        }
-        if (type === 'tonkho') {
-            const snapT = await database.ref('data/tonTiem').once('value'); 
-            let rawT = snapT.val() || {}; tonTiem = {}; for(let k in rawT) tonTiem[decodeFB(k)] = rawT[k];
-            
-            const snapK = await database.ref('data/tonKho').once('value'); 
-            let rawK = snapK.val() || {}; tonKho = {}; for(let k in rawK) tonKho[decodeFB(k)] = rawK[k];
-            
-            const snapS = await database.ref('data/tonSV').once('value'); 
-            let rawS = snapS.val() || {}; tonSV = {}; for(let k in rawS) tonSV[decodeFB(k)] = rawS[k];
-            
-            await Promise.all([saveToDB('tonTiem', tonTiem), saveToDB('tonKho', tonKho), saveToDB('tonSV', tonSV)]);
-        }
-        mergeDatasets(); showToast("✅ Đồng bộ Cloud hoàn tất cực nhanh!");
-    } catch (err) { dbStatus.innerText = '⚠️ Lỗi mạng Cloud'; }
-}
-
-function mergeDatasets() {
-  const allCodes = new Set([ ...Object.keys(dmvtTiem||{}), ...Object.keys(dmvtKho||{}), ...Object.keys(tonSV||{}) ]);
-  RAW_ITEMS = Array.from(allCodes).map(code => {
-    const dt = dmvtTiem[code] || {}; const dk = dmvtKho[code] || {}; 
-    return { 
-        c: code, 
-        nhom: dk.n || dt.n || '', t: dk.t || dt.t || '', d: dk.d || dt.d || '', 
-        kv: dk.v || '', km: dk.m || '', tv: dt.v || '', tm_m: dt.m || '',
-        s: tonSV[code] || 0, k: tonKho[code] || 0, tm: tonTiem[code] || 0 
-    };
-  });
-  buildIndex(RAW_ITEMS);
-}
-
-// ==========================================
-// XỬ LÝ TEXT VÀ TÌM KIẾM
-// ==========================================
-function removeVietnameseTones(str) {
-    if (!str) return '';
-    str = str.toString().toLowerCase();
-    const map = {
-        "a": /[àáạảãâầấậẩẫăằắặẳẵ]/g,
-        "e": /[èéẹẻẽêềếệểễ]/g,
-        "i": /[ìíịỉĩ]/g,
-        "o": /[òóọỏõôồốộổỗơờớợởỡ]/g,
-        "u": /[ùúụủũưừứựửữ]/g,
-        "y": /[ỳýỵỷỹ]/g,
-        "d": /đ/g
-    };
-    for (let key in map) {
-        str = str.replace(map[key], key);
-    }
-    return str;
-}
-
-function normalizeCode(c) { return (!c) ? '' : c.toString().replace(/^['"`‘’\s]+/g, '').replace(/[.\s]+$/g, '').replace(/[- \t\r\n'"`‘’]/g, '').toUpperCase(); }
-
-function buildIndex(items) {
-  itemDatabase = items.map(item => ({ ...item, cleanCode: normalizeCode(item.c), normName: removeVietnameseTones(item.t), fullSearchText: normalizeCode(item.c) + ' ' + removeVietnameseTones(item.t) + ' ' + (item.t||'').toLowerCase() }));
-  cartItems.forEach(cItem => { let fItem = itemDatabase.find(i => i.cleanCode === cItem.cleanCode); if(fItem) { cItem.k = fItem.k; cItem.tm = fItem.tm; cItem.s = fItem.s; } });
-  document.getElementById('dbStatus').innerText = itemDatabase.length > 0 ? `⚡ Đã kết nối Cloud (${itemDatabase.length.toLocaleString('vi-VN')} món)` : '⚠️ Chưa có dữ liệu';
-  processCart();
-}
-
-function handleSearchInput() {
-  let query = document.getElementById('searchInput').value.trim(); 
-  let dropdown = document.getElementById('searchDropdown');
-  if(query.length < 2) { dropdown.style.display = 'none'; return; }
-  
-  let qClean = normalizeCode(query); 
-  let qNorm = removeVietnameseTones(query); 
-  // FIX: Chuyển dấu '-' ra ngoài cùng để tránh tạo Range nuốt mất số và chữ in hoa
-  let tokens = qNorm.split(/[\s,;+_\/-]+/).filter(t => t.length > 0);
-  
-  let rawQueryUpper = query.toUpperCase();
-  let firstTokenUpper = tokens.length > 0 ? tokens[0].toUpperCase() : '';
-
-  let results = [];
-
-  itemDatabase.forEach(item => {
-      let score = 0; 
-      let rawCode = item.c.toUpperCase();
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-w-0 pb-24 md:pb-8">
       
-      // 1. Tuyệt đối chính xác mã
-      if (rawCode === rawQueryUpper || item.cleanCode === qClean) {
-          score = 10000;
-      } 
-      // 2. KiotViet Smart Match: Khớp MÃ + TÊN (Token đầu tiên khớp tiền tố mã, các token sau khớp tên)
-      else if (tokens.length > 1 && rawCode.startsWith(firstTokenUpper)) {
-          let nameMatch = true;
-          for (let i = 1; i < tokens.length; i++) {
-              if (!item.fullSearchText.includes(tokens[i])) { nameMatch = false; break; }
-          }
-          if (nameMatch) score = 8000 + item.s; 
-      }
-      // 3. Khớp một phần mã
-      else if (rawCode.startsWith(rawQueryUpper) || item.cleanCode.startsWith(qClean)) {
-          score = 5000 - item.cleanCode.length; 
-      }
-      else if (rawCode.includes(rawQueryUpper) || item.cleanCode.includes(qClean)) {
-          score = 1000 - item.cleanCode.length;
-      }
-      // 4. KiotViet Smart Match 2: Bất kỳ Token nào khớp mã, các token còn lại khớp tên
-      else if (tokens.length > 1) {
-          for(let i=0; i<tokens.length; i++) {
-              if (rawCode.includes(tokens[i].toUpperCase())) {
-                  let nameMatch = true;
-                  for (let j = 0; j < tokens.length; j++) {
-                      if (j === i) continue;
-                      if (!item.fullSearchText.includes(tokens[j])) { nameMatch = false; break; }
-                  }
-                  if (nameMatch) { score = 3000 + item.s; break; }
-              }
-          }
-      }
-      
-      // 5. Khớp tìm kiếm text thông thường
-      if (score === 0 && tokens.length > 0) {
-          let nameMatch = true; 
-          for(let token of tokens) { 
-              if (!item.fullSearchText.includes(token)) { nameMatch = false; break; } 
-          }
-          if (nameMatch) score = 500 + item.s; 
-      }
-      
-      if (score > 0) results.push({ item: item, score: score });
-  });
-  
-  results.sort((a, b) => b.score - a.score); 
-  results = results.slice(0, 50).map(r => r.item);
-  
-  if(results.length === 0) { dropdown.style.display = 'none'; return; }
-  
-  dropdown.innerHTML = '';
-  results.forEach(item => {
-      let div = document.createElement('div'); div.className = 'search-item';
-      let tm = item.tm; let k = item.k; let s = item.s; if (k < s && tm === 0) tm = s - k;
-      let activeStock = saleMode === 'tiem' ? tm : k; let activeLabel = saleMode === 'tiem' ? 'Tiệm' : 'Kho';
-      div.innerHTML = `
-          <div class="search-item-row"><span class="search-item-title" title="${item.t}">${item.t || 'Chưa có tên'}</span><span class="search-item-unit">${item.d || 'Cái'}</span></div>
-          <div class="search-item-row" style="margin-top: 4px;"><span class="search-item-code">${item.c}</span><div class="search-stock-wrap"><span style="color: var(--ton-color);">Tồn ${activeLabel}:${activeStock}</span><span style="color: #ccc;">|</span><span style="color: var(--sv-color);">Tổng SV: ${s}</span></div></div>`;
-      div.onclick = function() { addToCart(item.c); }; dropdown.appendChild(div);
-  });
-  dropdown.style.display = 'block';
-}
-
-function addToCart(code, qty = 1, fromOCR = false) {
-    let qClean = normalizeCode(code); let matchedItem = itemDatabase.find(x => x.cleanCode === qClean);
-    if(!matchedItem) matchedItem = itemDatabase.find(x => x.c.toUpperCase() === code.toUpperCase());
-    if(!matchedItem) { if(fromOCR) cartItems.push({ code: code, ten: code, isUnknown: true, qty: qty }); else alert("Mã không tồn tại!"); return; }
-    
-    let existIndex = cartItems.findIndex(x => x.cleanCode === matchedItem.cleanCode);
-    if(existIndex > -1) { cartItems[existIndex].qty += qty; lastHighlightId = matchedItem.cleanCode; } 
-    else { cartItems.push({ c: matchedItem.c, cleanCode: matchedItem.cleanCode, t: matchedItem.t, d: matchedItem.d, s: matchedItem.s, k: matchedItem.k, tm: matchedItem.tm, kv: matchedItem.kv, km: matchedItem.km, tv: matchedItem.tv, tm_m: matchedItem.tm_m, nhom: matchedItem.nhom, qty: qty, isUnknown: false }); lastHighlightId = matchedItem.cleanCode; }
-    
-    document.getElementById('searchInput').value = ''; document.getElementById('searchDropdown').style.display = 'none'; document.getElementById('searchInput').focus(); saveLocalState(); processCart();
-}
-
-function removeFromCart(index) { cartItems.splice(index, 1); saveLocalState(); processCart(); }
-function adjustQty(index, delta) { let newVal = cartItems[index].qty + delta; updateQty(index, newVal < 1 ? 1 : newVal); }
-function updateQty(originalIndex, newQty) { let val = parseInt(newQty, 10); if (isNaN(val) || val < 1) val = 1; cartItems[originalIndex].qty = val; saveLocalState(); processCart(); }
-
-function handleRowCheck(event, index) {
-    let checkboxes = document.querySelectorAll('.row-item-check'); let clickedCb = event.target;
-    if (event.shiftKey && lastCheckedIndex !== null) { let start = Math.min(lastCheckedIndex, index); let end = Math.max(lastCheckedIndex, index); for (let i = start; i <= end; i++) checkboxes[i].checked = clickedCb.checked; }
-    lastCheckedIndex = index; updateSelectedCount();
-}
-
-function toggleAllChecks(source) { let checkboxes = document.querySelectorAll('.row-item-check'); for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = source.checked; lastCheckedIndex = null; updateSelectedCount(); }
-
-function handleMediaUpload(files) {
-  if (!files || files.length === 0) return; let file = files[0]; let ext = file.name.split('.').pop().toLowerCase();
-  if (['xlsx', 'xls', 'csv'].includes(ext)) {
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      let data = new Uint8Array(e.target.result); let workbook = XLSX.read(data, { type: 'array' });
-      let jsonRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-      let colCode = -1; let colQty = -1; let headerIdx = -1;
-      for (let rIdx = 0; rIdx < Math.min(jsonRows.length, 10); rIdx++) {
-        let row = jsonRows[rIdx]; if (!row || !Array.isArray(row)) continue;
-        for (let cIdx = 0; cIdx < row.length; cIdx++) {
-          let cellStr = (row[cIdx] || '').toString().trim().toLowerCase();
-          if (['mã hàng', 'mã vật tư', 'mã', 'mã sp', 'mã sản phẩm', 'code', 'item code'].includes(cellStr)) colCode = cIdx;
-          if (['số lượng', 'sl', 'qty', 'quantity', 'soluong'].includes(cellStr)) colQty = cIdx;
-        } if (colCode !== -1) { headerIdx = rIdx; break; }
-      }
-      if (headerIdx !== -1 && colCode !== -1) {
-        for (let r = headerIdx + 1; r < jsonRows.length; r++) {
-          let row = jsonRows[r]; if (!row || row[colCode] === undefined || row[colCode] === null) continue;
-          let codeStr = row[colCode].toString().replace(/^['"`‘’\s]+/g, '').replace(/[.\s]+$/g, '').trim();
-          if (!codeStr || codeStr.toLowerCase().startsWith('tổng') || codeStr.toLowerCase().startsWith('cộng')) continue;
-          let qty = 1; if (colQty !== -1 && row[colQty] !== undefined && row[colQty] !== null) { let qNum = parseFloat(row[colQty].toString().trim()); if (!isNaN(qNum) && qNum > 0) qty = qNum; }
-          addToCart(codeStr, qty, true);
-        }
-      }
-    }; reader.readAsArrayBuffer(file);
-  } else if (file.type.startsWith('image/')) {
-    showToast("Đang xử lý hình ảnh OCR... Vui lòng đợi trong giây lát");
-    Tesseract.recognize(file, 'vie+eng').then(({ data }) => {
-      let lines = data.text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-      lines.forEach(line => { let qty = 1; let codeStr = line; let match = line.match(/(.*?)\s+(?:sl|x|-|)\s*(\d+)/i); if(match) { codeStr = match[1].trim(); qty = parseInt(match[2], 10) || 1; } if(codeStr) addToCart(codeStr, qty, true); });
-    }).catch(err => alert("Không thể nhận diện ảnh."));
-  }
-}
-
-function evaluateItemDecision(tiem_ton, kho_ton, sv_ton, qty, targetMatched) {
-  let decision = ''; let targetLoc = ''; let targetMota = ''; let tagClass = ''; let isOut = false;
-  let getLocKho = () => ({ loc: targetMatched.kv || targetMatched.tv || 'Chưa có vị trí', mota: targetMatched.km || targetMatched.tm_m || '' });
-  let getLocTiem = () => ({ loc: targetMatched.tv || targetMatched.kv || 'Chưa có vị trí', mota: targetMatched.tm_m || targetMatched.km || '' });
-  if (sv_ton <= 0) { decision = '❌ HẾT HÀNG'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; }
-  else if (qty <= 0) { decision = '➖ CHƯA NHẬP SL'; tagClass = 'tag-warn'; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; } 
-  else if (sv_ton < qty) { decision = '❌ THIẾU HÀNG (' + sv_ton + '/' + qty + ')'; tagClass = 'tag-out'; isOut = true; let locInfo = saleMode === 'tiem' ? getLocTiem() : getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota; } 
-  else if (saleMode === 'tiem') {
-    let locInfo = getLocTiem(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
-    if (tiem_ton >= qty) { decision = '🏪 LẤY TẠI TIỆM'; tagClass = 'tag-tiem'; }
-    else if (tiem_ton > 0) { decision = '⚠️ TIỆM (' + tiem_ton + ') + KHO (' + (qty-tiem_ton>kho_ton?kho_ton:qty-tiem_ton) + ')'; tagClass = 'tag-warn'; }
-    else { let locKho = getLocKho(); targetLoc = locKho.loc; targetMota = locKho.mota; if (kho_ton >= qty) { decision = '🚚 LẤY KHO 2KM'; tagClass = 'tag-kho'; } else { decision = '⚠️ LỆCH KHO'; tagClass = 'tag-warn'; } }
-  } else {
-    let locInfo = getLocKho(); targetLoc = locInfo.loc; targetMota = locInfo.mota;
-    if (kho_ton >= qty) { decision = '📦 LẤY TẠI KHO'; tagClass = 'tag-kho'; }
-    else if (kho_ton > 0) { decision = '⚠️ KHO (' + kho_ton + ') + TIỆM (' + (qty-kho_ton>tiem_ton?tiem_ton:qty-kho_ton) + ')'; tagClass = 'tag-warn'; }
-    else { let locTiem = getLocTiem(); targetLoc = locTiem.loc; targetMota = locTiem.mota; if (tiem_ton >= qty) { decision = '🏪 LẤY TẠI TIỆM'; tagClass = 'tag-tiem'; } else { decision = '⚠️ LỆCH KHO'; tagClass = 'tag-warn'; } }
-  }
-  return { decision, targetLoc, targetMota, tagClass, isOut };
-}
-
-function getShortLoc(locStr) { return (!locStr || locStr === '0') ? '0' : locStr.replace(/\(.*?\)/g, '').trim(); }
-function getPerson(locStr, metaPerson) { if (metaPerson && metaPerson !== '0') return metaPerson; let m = (locStr||'').match(/\((.*?)\)/); return (m && m[1]) ? m[1].trim() : '-'; }
-function getSortRank(locStr) {
-  if (!locStr) return 999999; let str = locStr.toUpperCase(); let rank = 100000;
-  if (str.includes('TRỆT') || str.includes('CHỆT')) rank = 10000; else if (str.includes('LẦU 1') || str.includes('LAU 1')) rank = 20000; else if (str.includes('LẦU 2') || str.includes('LAU 2')) rank = 30000; else if (str.includes('LẦU 3') || str.includes('LAU 3')) rank = 40000;
-  let keM = str.match(/KỆ\s*([0-9]+)/); if (keM) rank += parseInt(keM[1]) * 100; let tangM = str.match(/TẦNG\s*([0-9]+)/); if (tangM) rank += parseInt(tangM[1]) * 10; let oM = str.match(/Ô\s*([0-9]+)/); if (oM) rank += parseInt(oM[1]); return rank;
-}
-
-function processCart() {
-  if (cartItems.length === 0) {
-    document.getElementById('resultBody').innerHTML = '<tr><td colspan="12" style="text-align:center; color:#9aa0a6; padding:40px; background: transparent; border-bottom: none;">🔍 Sử dụng thanh tìm kiếm phía trên để thêm hàng vào toa...</td></tr>';
-    document.getElementById('outAlert').style.display = 'none'; return;
-  }
-  let results = []; let outOfStockList = [];
-  cartItems.forEach((item, originalIndex) => {
-    if(item.isUnknown) { results.push({ decision: '❓ KHÔNG TÌM THẤY', tagClass: 'tag-out', code: '-', ten: item.code, dvt: '-', qty: item.qty, tiem_ton: 0, kho_ton: 0, sv_ton: 0, vitri: 'Chưa có thông tin', short_loc: '-', person: '-', rank: 999999, matchedObj: null, originalIndex: originalIndex, rowId: 'row-unknown-' + originalIndex }); return; }
-    let code = item.c; let ten = item.t || 'Chưa có tên'; let dvt = item.d || 'Cái';
-    let tiem_ton = item.tm || 0; let kho_ton = item.k || 0; let sv_ton = item.s || 0;
-    if (kho_ton < sv_ton && tiem_ton === 0) tiem_ton = sv_ton - kho_ton;
-    let res = evaluateItemDecision(tiem_ton, kho_ton, sv_ton, item.qty, item);
-    if (res.isOut) outOfStockList.push(code + ' (' + ten + ')');
-    results.push({ decision: res.decision, tagClass: res.tagClass, code: code, ten: ten, dvt: dvt, qty: item.qty, tiem_ton: tiem_ton, kho_ton: kho_ton, sv_ton: sv_ton, vitri: res.targetLoc, short_loc: getShortLoc(res.targetLoc), person: getPerson(res.targetLoc, res.targetMota), rank: getSortRank(res.targetLoc), matchedObj: item, originalIndex: originalIndex, rowId: 'row-' + item.cleanCode });
-  });
-  renderTableResults(results, outOfStockList);
-}
-
-function renderTableResults(results, outOfStockList) {
-  results.sort((a, b) => {
-    let getScore = (r) => {
-      let dec = (r.decision || '').toUpperCase(); let loc = (r.vitri || '').toUpperCase();
-      if (dec.includes('HẾT HÀNG') || dec.includes('KHÔNG TÌM THẤY')) return 10;
-      if (dec.includes('THIẾU HÀNG')) return 20;
-      if (saleMode === 'kho' && (dec.includes('LẤY TẠI TIỆM') || dec.includes('CHỈ CÒN TIỆM'))) return 30;
-      if (saleMode === 'tiem' && (dec.includes('LẤY KHO 2KM') || dec.includes('CHỈ CÒN KHO'))) return 30;
-      if (dec.includes('TIỆM') && dec.includes('KHO')) return 40;
-      if (!loc || loc.includes('CHƯA CÓ VỊ TRÍ') || loc === '0') return 70;
-      if (loc.includes('LINH')) return 50;
-      if (loc.includes('VIỆT') || loc.includes('VIET')) {
-          let nhom = (r.matchedObj && r.matchedObj.nhom ? r.matchedObj.nhom : '').toUpperCase(); let ten = (r.ten || '').toUpperCase(); let groupText = nhom + ' ' + ten; 
-          if (groupText.includes('RUỘT') || groupText.includes('RUOT')) return 61; if (groupText.includes('NHỚT') || groupText.includes('NHOT')) return 62; if (groupText.includes('VỎ') || groupText.includes('VÕ')) return 63; if (groupText.includes('MỦ ZIN') || groupText.includes('MU ZIN')) return 64; return 65;
-      }
-      return 69;
-    };
-    let scoreA = getScore(a); let scoreB = getScore(b);
-    if (scoreA !== scoreB) return scoreA - scoreB;
-    let getLocOwner = (loc) => { if (!loc) return '-'; let m = loc.match(/\(\s*(.*?)\s*\)/); return m ? m[1].toUpperCase().trim() : '-'; };
-    let ownerA = getLocOwner(a.vitri); let ownerB = getLocOwner(b.vitri);
-    if (ownerA !== ownerB) { if (ownerA === '-') return 1; if (ownerB === '-') return -1; return ownerA.localeCompare(ownerB); }
-    return (a.rank || 999999) - (b.rank || 999999);
-  });
-  lastResults = results; let tbody = document.getElementById('resultBody'); tbody.innerHTML = '';
-  results.forEach((r, idx) => {
-    let dynamicStockCell = saleMode === 'tiem' ? `<td class="col-ton stock-num color-ton snap-data">${r.tiem_ton}</td>` : `<td class="col-ton stock-num color-ton snap-data">${r.kho_ton}</td>`;
-    let trClass = lastHighlightId === (r.matchedObj ? r.matchedObj.cleanCode : null) ? 'highlight-row' : '';
-    let locText = (r.vitri || '').toUpperCase(); let bgClass = '';
-    if (locText.includes('TRỆT') || locText.includes('CHỆT')) bgClass = 'bg-tret'; else if (locText.includes('LẦU 1') || locText.includes('LAU 1')) bgClass = 'bg-lau1'; else if (locText.includes('LẦU 2') || locText.includes('LAU 2')) bgClass = 'bg-lau2'; else if (locText.includes('LẦU 3') || locText.includes('LAU 3')) bgClass = 'bg-lau3';
-
-    tbody.insertAdjacentHTML('beforeend', `
-      <tr id="${r.rowId}" class="${trClass}">
-        <td class="col-del no-print"><button class="btn-remove-row" onclick="removeFromCart(${r.originalIndex})" title="Xóa món này">🗑️</button></td>
-        <td class="col-stt snap-hide">${idx + 1}</td>
-        <td class="col-goi-y snap-hide"><span class="tag ${r.tagClass}">${r.decision}</span></td>
-        <td class="col-ma snap-data"><span class="code-cell">${r.code}</span></td>
-        <td class="col-ten snap-data">
-            <div class="name-cell" title="${r.ten}">${r.ten}</div>
-            <div><span class="inline-loc ${bgClass}">📍 ${r.vitri || 'Chưa có vị trí'}</span></div>
-        </td>
-        <td class="col-dvt snap-data">${r.dvt}</td>
-        <td class="col-sl snap-data">
-          <div class="qty-wrapper">
-             <button class="qty-btn" onclick="adjustQty(${r.originalIndex}, -1)">-</button>
-             <input type="number" min="1" value="${r.qty}" class="qty-input" onchange="updateQty(${r.originalIndex}, this.value)">
-             <button class="qty-btn" onclick="adjustQty(${r.originalIndex}, 1)">+</button>
+      <!-- STICKY TOP HEADER (MONTH SELECTOR) -->
+      <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 md:px-8 flex items-center justify-between shadow-xs">
+        
+        <!-- Mobile Logo (visible on mobile only) -->
+        <div class="flex items-center gap-2.5 md:hidden">
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm shadow-sm">
+            <i class="fa-solid fa-wallet"></i>
           </div>
-        </td>
-        ${dynamicStockCell}
-        <td class="col-sv stock-num color-sv snap-data">${r.sv_ton}</td>
-        <td class="col-nguoi snap-hide">${r.person}</td>
-        <td class="col-check no-print"><input type="checkbox" class="row-checkbox row-item-check" data-id="${r.rowId}" onclick="handleRowCheck(event, ${idx})"></td>
-        <td class="col-spacer no-print"></td>
-      </tr>
-    `);
-  });
-  if (lastHighlightId) { setTimeout(() => { let row = document.getElementById('row-' + lastHighlightId); if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); lastHighlightId = null; } }, 100); }
-  let alertEl = document.getElementById('outAlert');
-  if (outOfStockList.length > 0) { alertEl.style.display = 'block'; alertEl.innerHTML = '⚠️ <b>BÁO ĐỘNG HẾT/THIẾU HÀNG (' + outOfStockList.length + ' món):</b> ' + outOfStockList.join(' | '); } else alertEl.style.display = 'none';
-  updateSelectedCount();
-}
+          <span class="font-bold text-slate-900 text-base tracking-tight hidden min-[480px]:inline">Quản Lý Chi Tiêu</span>
+        </div>
 
-function copyTableData() {
-  let text = `STT\tGỢI Ý SOẠN\tMã Hàng\tTên Hàng\tĐVT\tSL\tTồn ${saleMode === 'tiem' ? 'Tiệm' : 'Kho'}\tSV\tVị Trí Kệ - Tầng\tThủ Kho\n`;
-  lastResults.forEach((r, idx) => { let decStr = (r.decision || '').replace(/⚠️|❌|🏪|📦|🚚/g, '').trim(); let dynStock = saleMode === 'tiem' ? r.tiem_ton : r.kho_ton; text += `${idx + 1}\t${decStr}\t${r.code}\t${r.ten}\t${r.dvt}\t${r.qty}\t${dynStock}\t${r.sv_ton}\t${getShortLoc(r.vitri)}\t${r.person}\n`; });
-  navigator.clipboard.writeText(text).then(() => showToast('Đã chép nội dung text chuẩn vào Clipboard!'));
-}
+        <!-- Global Month / Year Selector -->
+        <div class="flex items-center gap-2 mx-auto md:mx-0">
+          <button @click="changeMonth(-1)" title="Tháng trước" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition active:scale-95">
+            <i class="fa-solid fa-chevron-left text-sm"></i>
+          </button>
 
-async function copySelectedAsImage() {
-    let checkboxes = document.querySelectorAll('.row-item-check'); let hasSelection = false;
-    for(let i=0; i<checkboxes.length; i++) { if(checkboxes[i].checked) { hasSelection = true; break; } }
-    if (!hasSelection) { for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = true; }
-    let overlay = document.getElementById('snapOverlay'); overlay.style.display = 'flex'; 
-    let table = document.getElementById('mainTable'); let originalWidth = table.style.width; table.classList.add('is-snapping');
-    let thElements = document.querySelectorAll('#mainTable th'); thElements.forEach(th => th.style.position = 'static');
-    let tableContainer = document.getElementById('tableScrollArea'); let origOverflow = tableContainer.style.overflowY; tableContainer.style.overflowY = 'visible';
-    let hideCols = document.querySelectorAll('.snap-hide, .col-del, .col-check, .col-spacer'); hideCols.forEach(el => el.style.display = 'none'); 
+          <div class="relative flex items-center bg-slate-100/80 hover:bg-slate-100 rounded-xl px-3 py-1.5 border border-slate-200/80">
+            <i class="fa-regular fa-calendar text-slate-500 mr-2 text-sm"></i>
+            <input type="month" v-model="selectedMonth" class="bg-transparent font-bold text-slate-800 text-sm md:text-base outline-none cursor-pointer">
+          </div>
 
-    let allRows = document.querySelectorAll('#resultBody tr');
-    allRows.forEach((row) => {
-        row.classList.remove('highlight-row'); let cb = row.querySelector('.row-item-check');
-        if (cb && !cb.checked) row.style.display = 'none'; 
-        else {
-            let qtyWrapper = row.querySelector('.qty-wrapper'); if(qtyWrapper) qtyWrapper.style.border = 'none';
-            let qtyBtns = row.querySelectorAll('.qty-btn'); qtyBtns.forEach(btn => btn.style.display = 'none');
-            let input = row.querySelector('.qty-input'); if(input) { input.style.border = 'none'; input.style.background = 'transparent'; }
-        }
-    });
+          <button @click="changeMonth(1)" title="Tháng sau" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition active:scale-95">
+            <i class="fa-solid fa-chevron-right text-sm"></i>
+          </button>
 
-    await new Promise(r => setTimeout(r, 200));
-    try {
-        let canvas = await html2canvas(table, { backgroundColor: "#ffffff", scale: 2, logging: false, useCORS: true });
-        canvas.toBlob(function(blob) {
-            const item = new ClipboardItem({ "image/png": blob });
-            navigator.clipboard.write([item]).then(function() { showToast("📸 Đã Copy ảnh Zalo thành công! Bấm Ctrl+V để dán"); }, function(error) { showToast("Lỗi copy ảnh: " + error); });
+          <button @click="resetToCurrentMonth" title="Về tháng hiện tại" class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl transition border border-emerald-200/60">
+            <i class="fa-solid fa-rotate-left"></i>
+            Tháng này
+          </button>
+        </div>
+
+        <!-- Desktop Top Quick Actions -->
+        <div class="hidden md:flex items-center gap-3">
+          <button @click="openExpenseModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-minus text-xs"></i> Chi tiêu
+          </button>
+          <button @click="openDeductionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-receipt text-xs"></i> Khoản trừ
+          </button>
+          <button @click="openIncomeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus text-xs"></i> Lương / Thu nhập
+          </button>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT PANELS -->
+      <div class="p-4 md:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+        <!-- ==================== TAB 1: TỔNG QUAN (DASHBOARD) ==================== -->
+        <div v-if="activeTab === 'dashboard'" class="space-y-6">
+          
+          <!-- 4 KPI CARDS -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- KPI 1: Tổng thu nhập -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Thu nhập / Lương</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <i class="fa-solid fa-hand-holding-dollar text-base"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold text-slate-900 tracking-tight">
+                {{ formatVND(monthlySummary.totalIncome) }}
+              </div>
+              <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                  {{ monthlySummary.incomeCount }} khoản
+                </span>
+                <span>tháng {{ formattedSelectedMonthLabel }}</span>
+              </div>
+            </div>
+
+            <!-- KPI 2: Khoản trừ lương -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Trừ lương (Cố định & Hạn)</span>
+                <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                  <i class="fa-solid fa-file-invoice text-base"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold text-indigo-900 tracking-tight">
+                {{ formatVND(monthlySummary.totalDeductions) }}
+              </div>
+              <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                  {{ monthlySummary.activeDeductionsCount }} khoản áp dụng
+                </span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Chi tiêu phát sinh -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Chi tiêu phát sinh</span>
+                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                  <i class="fa-solid fa-cart-shopping text-base"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold text-rose-900 tracking-tight">
+                {{ formatVND(monthlySummary.totalExpenses) }}
+              </div>
+              <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                  {{ monthlySummary.expenseCount }} giao dịch
+                </span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Số dư thực tế còn lại -->
+            <div :class="['bg-white rounded-2xl p-5 border shadow-xs relative overflow-hidden', monthlySummary.remainingBalance >= 0 ? 'border-emerald-300 ring-2 ring-emerald-50' : 'border-rose-300 ring-2 ring-rose-50']">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Số dư thực tế còn lại</span>
+                <div :class="['w-9 h-9 rounded-xl flex items-center justify-center', monthlySummary.remainingBalance >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700']">
+                  <i :class="monthlySummary.remainingBalance >= 0 ? 'fa-solid fa-piggy-bank' : 'fa-solid fa-triangle-exclamation'"></i>
+                </div>
+              </div>
+              <div :class="['text-2xl font-bold tracking-tight', monthlySummary.remainingBalance >= 0 ? 'text-emerald-700' : 'text-rose-600']">
+                {{ formatVND(monthlySummary.remainingBalance) }}
+              </div>
+              <div class="mt-2 flex items-center gap-1.5 text-xs">
+                <span :class="['font-semibold px-2 py-0.5 rounded-md', monthlySummary.remainingBalance >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800']">
+                  {{ monthlySummary.savingsRate }}% thu nhập
+                </span>
+                <span class="text-slate-500">còn tích lũy</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK MOBILE / TABLET ACTION BUTTONS -->
+          <div class="grid grid-cols-3 gap-3 md:hidden">
+            <button @click="openIncomeModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-emerald-600 text-white font-medium text-xs gap-1.5 shadow-sm active:scale-95 transition">
+              <i class="fa-solid fa-plus-circle text-lg"></i>
+              Thêm Thu Nhập
+            </button>
+            <button @click="openDeductionModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-indigo-600 text-white font-medium text-xs gap-1.5 shadow-sm active:scale-95 transition">
+              <i class="fa-solid fa-receipt text-lg"></i>
+              Thêm Trừ Lương
+            </button>
+            <button @click="openExpenseModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-rose-600 text-white font-medium text-xs gap-1.5 shadow-sm active:scale-95 transition">
+              <i class="fa-solid fa-minus-circle text-lg"></i>
+              Thêm Chi Tiêu
+            </button>
+          </div>
+
+          <!-- CHARTS & SUMMARY SECTION -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chart 1: Financial Structure -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                  <i class="fa-solid fa-chart-pie text-emerald-600"></i>
+                  Cơ Cấu Thu Chi Tháng
+                </h3>
+              </div>
+              <div class="relative h-56 flex items-center justify-center">
+                <canvas id="structureChart"></canvas>
+              </div>
+              <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
+                <div class="bg-indigo-50 p-2 rounded-xl">
+                  <div class="text-indigo-600 font-medium">Trừ lương</div>
+                  <div class="font-bold text-slate-800 mt-0.5">{{ getPercent(monthlySummary.totalDeductions, monthlySummary.totalIncome) }}%</div>
+                </div>
+                <div class="bg-rose-50 p-2 rounded-xl">
+                  <div class="text-rose-600 font-medium">Chi tiêu</div>
+                  <div class="font-bold text-slate-800 mt-0.5">{{ getPercent(monthlySummary.totalExpenses, monthlySummary.totalIncome) }}%</div>
+                </div>
+                <div class="bg-emerald-50 p-2 rounded-xl">
+                  <div class="text-emerald-700 font-medium">Số dư còn</div>
+                  <div class="font-bold text-slate-800 mt-0.5">{{ monthlySummary.savingsRate }}%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Widget: Deductions Tracker checklist for Selected Month -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs lg:col-span-2 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i>
+                    Tiến Độ Trừ Lương Tháng {{ formattedSelectedMonthLabel }}
+                  </h3>
+                  <p class="text-xs text-slate-500">Đánh dấu các khoản đã trừ / đã đóng trong tháng</p>
+                </div>
+                <button @click="activeTab = 'deductions'" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                  Quản lý khoản trừ <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+              </div>
+
+              <!-- Deductions Checklist -->
+              <div v-if="currentMonthDeductions.length > 0" class="space-y-2.5 overflow-y-auto max-h-72 pr-1">
+                <div v-for="item in currentMonthDeductions" :key="item.id"
+                     class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-slate-50 transition">
+                  <div class="flex items-center gap-3">
+                    <button @click="toggleDeductionPaid(item.id)" 
+                            :class="['w-6 h-6 rounded-lg border flex items-center justify-center transition', isDeductionPaid(item.id) ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white text-transparent hover:border-emerald-500']">
+                      <i class="fa-solid fa-check text-xs"></i>
+                    </button>
+                    <div>
+                      <div class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                        <span :class="{'line-through text-slate-400': isDeductionPaid(item.id)}">{{ item.name }}</span>
+                        <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-full', item.type === 'fixed' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700']">
+                          {{ item.type === 'fixed' ? 'Cố định' : 'Có thời hạn' }}
+                        </span>
+                      </div>
+                      <div class="text-xs text-slate-500 mt-0.5">
+                        <template v-if="item.type === 'time_limited'">
+                          Kỳ {{ item.calcCurrentPeriod }} / {{ item.calcTotalMonths }} • Còn {{ item.calcRemainingMonths }} tháng (T{{ item.endMonth }})
+                        </template>
+                        <template v-else>
+                          Bắt đầu từ T{{ item.startMonth }}
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-slate-900 text-sm">{{ formatVND(item.amount) }}</div>
+                    <span :class="['text-[11px] font-medium', isDeductionPaid(item.id) ? 'text-emerald-600' : 'text-amber-600']">
+                      {{ isDeductionPaid(item.id) ? 'Đã trừ' : 'Chưa trừ' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                <i class="fa-solid fa-receipt text-3xl text-slate-300 mb-2"></i>
+                <p class="text-sm font-medium text-slate-600">Không có khoản trừ lương nào trong tháng này</p>
+                <button @click="openDeductionModal()" class="mt-3 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition">
+                  + Thêm khoản trừ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT TRANSACTIONS TABLE -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-slate-600"></i>
+                Chi Tiêu Gần Đây Trong Tháng
+              </h3>
+              <button @click="activeTab = 'expenses'" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
+                Xem tất cả chi tiêu <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <div v-if="currentMonthExpenses.length > 0" class="overflow-x-auto">
+              <table class="w-full text-left text-sm text-slate-700">
+                <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="py-3 px-3">Ngày</th>
+                    <th class="py-3 px-3">Danh mục</th>
+                    <th class="py-3 px-3">Ghi chú</th>
+                    <th class="py-3 px-3 text-right">Số tiền</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="exp in currentMonthExpenses.slice(0, 5)" :key="exp.id" class="hover:bg-slate-50/80 transition">
+                    <td class="py-3 px-3 font-medium text-slate-600 whitespace-nowrap">{{ formatDateVN(exp.date) }}</td>
+                    <td class="py-3 px-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700">
+                        <i :class="getExpenseCategoryIcon(exp.category)"></i>
+                        {{ exp.category }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 text-slate-800 font-medium max-w-xs truncate">{{ exp.note || '---' }}</td>
+                    <td class="py-3 px-3 text-right font-bold text-rose-600 whitespace-nowrap">-{{ formatVND(exp.amount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="text-center py-8 text-slate-500 text-sm">
+              Chưa có khoản chi tiêu nào trong tháng này.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 2: THU NHẬP & LƯƠNG ==================== -->
+        <div v-if="activeTab === 'incomes'" class="space-y-6">
+          
+          <!-- Income Summary Header Card -->
+          <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <span class="text-emerald-100 text-xs font-semibold uppercase tracking-wider">Tổng Thu Nhập Tháng {{ formattedSelectedMonthLabel }}</span>
+              <h2 class="text-3xl font-extrabold mt-1 tracking-tight">{{ formatVND(monthlySummary.totalIncome) }}</h2>
+              <p class="text-emerald-100 text-xs mt-1">Gồm {{ monthlySummary.incomeCount }} khoản thu nhập được ghi nhận.</p>
+            </div>
+            <button @click="openIncomeModal()" class="bg-white text-emerald-800 hover:bg-emerald-50 px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition flex items-center gap-2 self-stretch md:self-auto justify-center">
+              <i class="fa-solid fa-plus"></i> Thêm Thu Nhập Mới
+            </button>
+          </div>
+
+          <!-- Income List -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+            <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-money-bill-wave text-emerald-600"></i>
+              Danh Sách Khoản Thu Nhập
+            </h3>
+
+            <div v-if="currentMonthIncomes.length > 0" class="space-y-3">
+              <div v-for="item in currentMonthIncomes" :key="item.id" class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-200/80 hover:border-emerald-300 transition bg-white gap-3">
+                <div class="flex items-start gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+                    <i :class="getIncomeCategoryIcon(item.category)"></i>
+                  </div>
+                  <div>
+                    <div class="font-bold text-slate-900 text-base flex items-center gap-2">
+                      {{ item.category }}
+                      <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                        {{ formatDateVN(item.date) }}
+                      </span>
+                      <span v-if="item.recurring" class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md"><i class="fa-solid fa-rotate mr-1"></i>Hàng tháng</span>
+                    </div>
+                    <p class="text-xs text-slate-600 mt-1 font-medium">{{ item.note || 'Không có ghi chú' }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0">
+                  <div class="text-right">
+                    <span class="text-base font-extrabold text-emerald-600">+{{ formatVND(item.amount) }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button @click="openIncomeModal(item)" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button @click="confirmDelete(item.recurring ? 'income_recurring' : 'income', item.id)" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition flex items-center justify-center">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="text-center py-12 text-slate-500">
+              <i class="fa-solid fa-coins text-4xl text-slate-300 mb-3"></i>
+              <p class="text-sm font-medium">Chưa có khoản thu nhập/lương nào cho tháng này.</p>
+              <button @click="openIncomeModal()" class="mt-3 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl transition">
+                + Thêm thu nhập
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 3: KHOẢN TRỪ LƯƠNG (KEY FEATURE) ==================== -->
+        <div v-if="activeTab === 'deductions'" class="space-y-6">
+          
+          <!-- Deductions Header Banner -->
+          <div class="bg-indigo-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <span class="text-indigo-200 text-xs font-semibold uppercase tracking-wider">Quản Lý Trừ Lương Cố Định & Có Thời Hạn</span>
+              <h2 class="text-3xl font-extrabold mt-1 tracking-tight">{{ formatVND(monthlySummary.totalDeductions) }}</h2>
+              <p class="text-indigo-200 text-xs mt-1">
+                {{ monthlySummary.activeDeductionsCount }} khoản đang tính trừ vào lương tháng {{ formattedSelectedMonthLabel }}.
+              </p>
+            </div>
+            <button @click="openDeductionModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition flex items-center gap-2 self-stretch md:self-auto justify-center">
+              <i class="fa-solid fa-plus"></i> Thêm Khoản Trừ Mới
+            </button>
+          </div>
+
+          <!-- Section Sub-Tabs: Active in month vs Expired/Completed -->
+          <div class="flex border-b border-slate-200 gap-6 text-sm font-semibold">
+            <button @click="deductionSubTab = 'active'" 
+                    :class="['pb-3 transition relative', deductionSubTab === 'active' ? 'text-indigo-600 border-b-2 border-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-800']">
+              Áp dụng tháng này ({{ currentMonthDeductions.length }})
+            </button>
+            <button @click="deductionSubTab = 'completed'" 
+                    :class="['pb-3 transition relative', deductionSubTab === 'completed' ? 'text-indigo-600 border-b-2 border-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-800']">
+              Đã hoàn thành / Ngưng trừ ({{ expiredDeductions.length }})
+            </button>
+            <button @click="deductionSubTab = 'all'" 
+                    :class="['pb-3 transition relative', deductionSubTab === 'all' ? 'text-indigo-600 border-b-2 border-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-800']">
+              Tất cả danh sách ({{ deductions.length }})
+            </button>
+          </div>
+
+          <!-- Sub-Tab 1: ACTIVE DEDUCTIONS FOR SELECTED MONTH -->
+          <div v-if="deductionSubTab === 'active'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="item in currentMonthDeductions" :key="item.id" 
+                 class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-indigo-300 transition">
+              <div>
+                <!-- Card Header -->
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                      <i :class="getDeductionCategoryIcon(item.category)"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-slate-900 text-base leading-snug">{{ item.name }}</h4>
+                      <span class="text-xs text-slate-500 font-medium">{{ item.category }}</span>
+                    </div>
+                  </div>
+                  <span :class="['text-xs font-semibold px-2.5 py-1 rounded-full', item.type === 'fixed' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800']">
+                    {{ item.type === 'fixed' ? 'Cố định' : 'Có thời hạn' }}
+                  </span>
+                </div>
+
+                <!-- Card Amount -->
+                <div class="mt-4 flex items-baseline justify-between">
+                  <span class="text-xs text-slate-500 font-medium">Số tiền trừ tháng:</span>
+                  <span class="text-xl font-extrabold text-indigo-900">{{ formatVND(item.amount) }}</span>
+                </div>
+
+                <!-- Time-Limited Installment Status & Progress Bar -->
+                <div v-if="item.type === 'time_limited'" class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-purple-700">
+                      Kỳ {{ item.calcCurrentPeriod }} / {{ item.calcTotalMonths }}
+                    </span>
+                    <span class="text-slate-600 font-medium">
+                      Còn {{ item.calcRemainingMonths }} tháng
+                    </span>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full transition-all duration-500" 
+                         :style="{ width: item.calcPercent + '%' }"></div>
+                  </div>
+                  <div class="text-[11px] text-slate-500 flex justify-between pt-0.5">
+                    <span>Bắt đầu: T{{ item.startMonth }}</span>
+                    <span class="font-semibold text-slate-700">Tự ngưng sau T{{ item.endMonth }}</span>
+                  </div>
+                </div>
+
+                <!-- Fixed Deduction Status -->
+                <div v-else class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                  <span class="text-slate-600 font-medium">
+                    <i class="fa-solid fa-calendar-check text-blue-500 mr-1"></i> Áp dụng từ tháng {{ item.startMonth }}
+                  </span>
+                  <button @click="toggleDeductionActive(item)" 
+                          :class="['text-xs font-semibold px-2.5 py-1 rounded-lg border transition', item.active !== false ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-200 text-slate-600 border-slate-300']">
+                    {{ item.active !== false ? 'Đang bật' : 'Tạm dừng' }}
+                  </button>
+                </div>
+
+                <p v-if="item.note" class="text-xs text-slate-500 mt-3 italic">Ghi chú: {{ item.note }}</p>
+              </div>
+
+              <!-- Card Bottom Actions & Payment Status Check -->
+              <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <button @click="toggleDeductionPaid(item.id)" 
+                        :class="['flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border transition', isDeductionPaid(item.id) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-500']">
+                  <i :class="isDeductionPaid(item.id) ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                  {{ isDeductionPaid(item.id) ? 'Đã trừ tháng này' : 'Chưa đánh dấu trừ' }}
+                </button>
+
+                <div class="flex items-center gap-1">
+                  <button @click="openDeductionModal(item)" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button @click="confirmDelete('deduction', item.id)" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <div v-if="currentMonthDeductions.length === 0" class="md:col-span-2 text-center py-12 bg-white rounded-2xl border border-slate-200/80 text-slate-500">
+              <i class="fa-solid fa-receipt text-4xl text-slate-300 mb-3"></i>
+              <p class="text-sm font-medium">Không có khoản trừ lương nào đang áp dụng trong tháng {{ formattedSelectedMonthLabel }}.</p>
+            </div>
+          </div>
+
+          <!-- Sub-Tab 2: EXPIRED / COMPLETED DEDUCTIONS -->
+          <div v-if="deductionSubTab === 'completed'" class="space-y-3">
+            <div v-for="item in expiredDeductions" :key="item.id" class="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-700 text-sm line-through">{{ item.name }}</h4>
+                  <p class="text-xs text-slate-500">Đã hoàn thành thời hạn (T{{ item.startMonth }} đến T{{ item.endMonth }})</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-bold text-slate-500">{{ formatVND(item.amount) }}</span>
+                <span class="block text-[11px] text-emerald-600 font-medium">Tự động ngưng trừ</span>
+              </div>
+            </div>
+            <div v-if="expiredDeductions.length === 0" class="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
+              Chưa có khoản trừ nào hoàn thành thời hạn.
+            </div>
+          </div>
+
+          <!-- Sub-Tab 3: ALL DEDUCTIONS LIST -->
+          <div v-if="deductionSubTab === 'all'" class="space-y-3">
+            <div v-for="item in deductions" :key="item.id" class="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">{{ item.name }}</h4>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  Loại: {{ item.type === 'fixed' ? 'Cố định hàng tháng' : 'Có thời hạn (' + item.startMonth + ' ➔ ' + item.endMonth + ')' }}
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-bold text-slate-900 text-sm">{{ formatVND(item.amount) }}</span>
+                <button @click="openDeductionModal(item)" class="text-slate-400 hover:text-slate-700 p-1">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button @click="confirmDelete('deduction', item.id)" class="text-slate-400 hover:text-rose-600 p-1">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 4: CHI TIÊU HÀNG NGÀY ==================== -->
+        <div v-if="activeTab === 'expenses'" class="space-y-6">
+          
+          <!-- Fast Expense Input Card -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+            <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-rose-600"></i>
+              Ghi Nhanh Chi Tiêu Tháng {{ formattedSelectedMonthLabel }}
+            </h3>
+
+            <form @submit.prevent="saveExpense" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                
+                <!-- Amount Input -->
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Số tiền chi tiêu (VNĐ)</label>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" v-model="expenseFormFormattedAmount" 
+                           @input="onExpenseAmountInput" required placeholder="0" 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-lg focus:bg-white focus:border-rose-500 outline-none transition">
+                    <span class="absolute right-3 top-3 text-sm font-bold text-slate-400">₫</span>
+                  </div>
+                  <!-- Quick Amount Chips -->
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    <button type="button" v-for="chip in [20000, 50000, 100000, 200000, 500000]" :key="chip"
+                            @click="addExpenseQuickAmount(chip)"
+                            class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition">
+                      +{{ formatShortVND(chip) }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Date -->
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Ngày chi</label>
+                  <input type="date" v-model="expenseForm.date" required
+                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 text-sm focus:bg-white focus:border-rose-500 outline-none transition">
+                </div>
+
+                <!-- Category -->
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Danh mục</label>
+                  <select v-model="expenseForm.category" required
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 text-sm focus:bg-white focus:border-rose-500 outline-none transition">
+                    <option v-for="cat in expenseCategories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Note & Submit -->
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" v-model="expenseForm.note" placeholder="Ghi chú chi tiết (ví dụ: Ăn trưa bún bò, Đổ xăng 50k...)"
+                       class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:border-rose-500 outline-none transition">
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-sm shrink-0 flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Lưu Chi Tiêu
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Expense List & Filter -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-slate-600"></i>
+                Danh Sách Chi Tiêu ({{ filteredExpenses.length }})
+              </h3>
+
+              <!-- Search & Filter Controls -->
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="relative flex-1 sm:w-48">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                  <input type="text" v-model="expenseSearch" placeholder="Tìm chi tiêu..."
+                         class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 outline-none focus:border-rose-500">
+                </div>
+                <select v-model="expenseCategoryFilter" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none">
+                  <option value="">Tất cả danh mục</option>
+                  <option v-for="cat in expenseCategories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Expense List Items -->
+            <div v-if="filteredExpenses.length > 0" class="space-y-2.5">
+              <div v-for="exp in filteredExpenses" :key="exp.id" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-slate-300 transition bg-white">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
+                    <i :class="getExpenseCategoryIcon(exp.category)"></i>
+                  </div>
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      {{ exp.note || exp.category }}
+                      <span class="text-[11px] font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        {{ formatDateVN(exp.date) }}
+                      </span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-medium">{{ exp.category }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <span class="font-extrabold text-rose-600 text-sm md:text-base">-{{ formatVND(exp.amount) }}</span>
+                  <button @click="openExpenseModal(exp)" class="text-slate-400 hover:text-slate-700 p-1">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button @click="confirmDelete('expense', exp.id)" class="text-slate-400 hover:text-rose-600 p-1">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-12 text-slate-500">
+              <p class="text-sm">Không tìm thấy giao dịch chi tiêu phù hợp.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 5: BÁO CÁO & DATA ==================== -->
+        <div v-if="activeTab === 'reports'" class="space-y-6">
+          
+          <!-- Annual Summary Table -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+            <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-emerald-600"></i>
+              Tổng Quan Tài Chính Năm {{ selectedYear }}
+            </h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs md:text-sm text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3">Tháng</th>
+                    <th class="py-2.5 px-3 text-emerald-700">Thu nhập</th>
+                    <th class="py-2.5 px-3 text-indigo-700">Trừ lương</th>
+                    <th class="py-2.5 px-3 text-rose-700">Chi tiêu</th>
+                    <th class="py-2.5 px-3 text-right">Tích lũy còn lại</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                  <tr v-for="m in 12" :key="m" class="hover:bg-slate-50 transition">
+                    <td class="py-2.5 px-3 font-bold text-slate-800">Tháng {{ String(m).padStart(2, '0') }}</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">{{ formatVND(getYearlyMonthSummary(m).income) }}</td>
+                    <td class="py-2.5 px-3 text-indigo-600 font-semibold">{{ formatVND(getYearlyMonthSummary(m).deduction) }}</td>
+                    <td class="py-2.5 px-3 text-rose-600 font-semibold">{{ formatVND(getYearlyMonthSummary(m).expense) }}</td>
+                    <td :class="['py-2.5 px-3 text-right font-extrabold', getYearlyMonthSummary(m).remaining >= 0 ? 'text-emerald-700' : 'text-rose-600']">
+                      {{ formatVND(getYearlyMonthSummary(m).remaining) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Data Backup & CSV Export Card -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <i class="fa-solid fa-file-export text-indigo-600"></i>
+              Quản Lý Dữ Liệu & Xuất File (Excel CSV / JSON)
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <!-- Export CSV -->
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-file-excel text-emerald-600 text-lg"></i>
+                  Xuất Excel (CSV UTF-8)
+                </div>
+                <p class="text-xs text-slate-500">Tải dữ liệu danh sách Thu nhập, Trừ lương, và Chi tiêu định dạng CSV hỗ trợ tiếng Việt chuẩn Excel.</p>
+                <button @click="exportCSV" class="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg transition shadow-xs">
+                  <i class="fa-solid fa-download mr-1"></i> Tải File CSV
+                </button>
+              </div>
+
+              <!-- Backup JSON -->
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-file-code text-indigo-600 text-lg"></i>
+                  Sao Lưu File JSON
+                </div>
+                <p class="text-xs text-slate-500">Xuất toàn bộ cơ sở dữ liệu tài chính của bạn thành file .json dự phòng cá nhân.</p>
+                <button @click="exportJSONBackup" class="w-full text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition shadow-xs">
+                  <i class="fa-solid fa-file-export mr-1"></i> Xuất File JSON
+                </button>
+              </div>
+
+              <!-- Restore JSON -->
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-file-import text-purple-600 text-lg"></i>
+                  Khôi Phục Từ JSON
+                </div>
+                <p class="text-xs text-slate-500">Tải file .json đã sao lưu trước đó để nạp lại dữ liệu thu chi.</p>
+                <label class="w-full block text-center text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition shadow-xs cursor-pointer">
+                  <i class="fa-solid fa-upload mr-1"></i> Chọn File JSON
+                  <input type="file" accept=".json" @change="importJSONBackup" class="hidden">
+                </label>
+              </div>
+
+            </div>
+
+            <!-- Demo Data Generator -->
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="text-xs text-slate-500">
+                Bạn muốn thử nghiệm ứng dụng ngay với dữ liệu mẫu chuẩn?
+              </div>
+              <button @click="loadSampleData" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-lg transition border border-slate-300">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-1"></i> Tạo dữ liệu mẫu
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION TAB BAR -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-2 shadow-lg flex justify-around items-center pb-safe">
+      <button v-for="tab in tabs" :key="tab.id"
+              @click="activeTab = tab.id"
+              :class="[
+                'flex flex-col items-center justify-center py-1 px-3 rounded-xl transition text-[11px] font-semibold gap-1',
+                activeTab === tab.id ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
+              ]">
+        <i :class="[tab.icon, 'text-lg']"></i>
+        <span>{{ tab.shortName || tab.name }}</span>
+      </button>
+    </nav>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- MODAL 1: INCOME FORM MODAL -->
+    <div v-if="showIncomeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in duration-150">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+            <i class="fa-solid fa-money-bill-wave text-emerald-600"></i>
+            {{ incomeForm.id ? 'Chỉnh Sửa Thu Nhập' : 'Thêm Thu Nhập / Lương' }}
+          </h3>
+          <button @click="showIncomeModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveIncome" class="space-y-4">
+          <!-- Amount -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Số tiền (VNĐ)</label>
+            <div class="relative">
+              <input type="text" inputmode="numeric" v-model="incomeFormFormattedAmount" @input="onIncomeAmountInput" required placeholder="0"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-lg focus:bg-white focus:border-emerald-500 outline-none">
+              <span class="absolute right-3.5 top-3 text-sm font-bold text-slate-400">₫</span>
+            </div>
+            <!-- Quick Chips -->
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <button type="button" v-for="chip in [1000000, 2000000, 5000000, 10000000, 20000000]" :key="chip"
+                      @click="setIncomeQuickAmount(chip)"
+                      class="text-xs font-medium bg-emerald-50 hover:bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg transition border border-emerald-100">
+                +{{ formatShortVND(chip) }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Date & Category -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Ngày nhận</label>
+              <input type="date" v-model="incomeForm.date" required
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Nguồn thu nhập</label>
+              <select v-model="incomeForm.category" @change="incomeForm.id || (incomeForm.recurring = incomeForm.category === 'Lương chính')" required
+                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium outline-none focus:border-emerald-500">
+                <option v-for="cat in incomeCategories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Note -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú chi tiết</label>
+            <input type="text" v-model="incomeForm.note" placeholder="Ví dụ: Lương công ty tháng 11, Thưởng doanh số..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none focus:border-emerald-500">
+          </div>
+
+          <label class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-100 cursor-pointer">
+            <input type="checkbox" v-model="incomeForm.recurring" class="mt-0.5 w-4 h-4 accent-emerald-600">
+            <span class="text-xs text-slate-700 leading-relaxed">
+              <b class="text-emerald-800">Lặp lại hàng tháng</b> — tự động tính vào các tháng sau, bắt đầu từ tháng của ngày nhận.
+              <span class="block text-slate-500">Cần đổi mức lương? Mở tháng đó, bấm sửa: thay đổi chỉ áp dụng từ tháng đó trở đi, các tháng trước giữ nguyên.</span>
+            </span>
+          </label>
+
+          <!-- Buttons -->
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button type="button" @click="showIncomeModal = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+              Hủy
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+              Lưu Thu Nhập
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: DEDUCTION FORM MODAL (KEY FEATURE) -->
+    <div v-if="showDeductionModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-indigo-600"></i>
+            {{ deductionForm.id ? 'Chỉnh Sửa Khoản Trừ Lương' : 'Thêm Khoản Trừ Lương Mới' }}
+          </h3>
+          <button @click="showDeductionModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveDeduction" class="space-y-4">
+          <!-- Name -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tên khoản trừ / Nghĩa vụ</label>
+            <input type="text" v-model="deductionForm.name" required placeholder="Ví dụ: Tiền thuê nhà, Trả góp iPhone, Bảo hiểm..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-500">
+          </div>
+
+          <!-- Amount -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Số tiền trừ hàng tháng (VNĐ)</label>
+            <div class="relative">
+              <input type="text" inputmode="numeric" v-model="deductionFormFormattedAmount" @input="onDeductionAmountInput" required placeholder="0"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-lg outline-none focus:border-indigo-500">
+              <span class="absolute right-3.5 top-3 text-sm font-bold text-slate-400">₫</span>
+            </div>
+          </div>
+
+          <!-- Type Selector (Fixed vs Time-Limited) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-2">Loại khoản trừ</label>
+            <div class="grid grid-cols-2 gap-3">
+              <label :class="['flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition', deductionForm.type === 'fixed' ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900' : 'border-slate-200 bg-slate-50 text-slate-600']">
+                <input type="radio" v-model="deductionForm.type" value="fixed" class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <div class="font-bold text-xs">Cố định hàng tháng</div>
+                  <div class="text-[11px] text-slate-500 leading-tight mt-0.5">Tiền nhà, bảo hiểm, gửi gia đình...</div>
+                </div>
+              </label>
+
+              <label :class="['flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition', deductionForm.type === 'time_limited' ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900' : 'border-slate-200 bg-slate-50 text-slate-600']">
+                <input type="radio" v-model="deductionForm.type" value="time_limited" class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <div class="font-bold text-xs">Có thời hạn (Tự ngưng)</div>
+                  <div class="text-[11px] text-slate-500 leading-tight mt-0.5">Trả góp, đóng hụi, trả nợ...</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Start Month -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tháng bắt đầu trừ</label>
+              <input type="month" v-model="deductionForm.startMonth" required @change="recalculateDeductionTerm"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-indigo-500">
+            </div>
+
+            <div v-if="deductionForm.type === 'fixed'">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Trạng thái áp dụng</label>
+              <select v-model="deductionForm.active" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-800 outline-none">
+                <option :value="true">Đang kích hoạt</option>
+                <option :value="false">Tạm dừng trừ</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Time-Limited Options (Term duration & End month) -->
+          <div v-if="deductionForm.type === 'time_limited'" class="bg-indigo-50/60 p-3.5 rounded-xl border border-indigo-100 space-y-3">
+            <div class="flex items-center gap-4 text-xs font-semibold text-slate-700">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" v-model="deductionForm.termMode" value="months" @change="recalculateDeductionTerm"> Nhập số tháng
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" v-model="deductionForm.termMode" value="end_month" @change="recalculateDeductionTerm"> Chọn tháng kết thúc
+              </label>
+            </div>
+
+            <div v-if="deductionForm.termMode === 'months'" class="grid grid-cols-2 gap-3 items-center">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Số tháng trừ (kỳ)</label>
+                <input type="number" min="1" max="120" v-model.number="deductionForm.durationMonths" @input="recalculateDeductionTerm" required
+                       class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 outline-none">
+              </div>
+              <div class="text-xs text-indigo-900 font-semibold pt-4">
+                ➜ Kết thúc sau tháng: <span class="text-indigo-700 font-bold bg-white px-2 py-1 rounded border border-indigo-200">{{ deductionForm.endMonth }}</span>
+              </div>
+            </div>
+
+            <div v-else class="grid grid-cols-2 gap-3 items-center">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tháng kết thúc trừ</label>
+                <input type="month" v-model="deductionForm.endMonth" @change="recalculateDeductionTerm" required
+                       class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 outline-none">
+              </div>
+              <div class="text-xs text-indigo-900 font-semibold pt-4">
+                ➜ Tổng thời gian: <span class="text-indigo-700 font-bold bg-white px-2 py-1 rounded border border-indigo-200">{{ deductionForm.durationMonths }} tháng</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Danh mục khoản trừ</label>
+            <select v-model="deductionForm.category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 font-medium outline-none">
+              <option v-for="cat in deductionCategories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+            </select>
+          </div>
+
+          <!-- Note -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
+            <input type="text" v-model="deductionForm.note" placeholder="Ví dụ: Trả góp FeCredit kỳ 5, Tiền cọc phòng..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none">
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button type="button" @click="showDeductionModal = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+              Hủy
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm">
+              Lưu Khoản Trừ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 3: EXPENSE FORM EDIT MODAL -->
+    <div v-if="showExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+            <i class="fa-solid fa-cart-shopping text-rose-600"></i>
+            Chỉnh Sửa Chi Tiêu
+          </h3>
+          <button @click="showExpenseModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveExpenseFromModal" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Số tiền (VNĐ)</label>
+            <div class="relative">
+              <input type="text" inputmode="numeric" v-model="modalExpenseFormattedAmount" @input="onModalExpenseAmountInput" required placeholder="0"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-lg outline-none focus:border-rose-500">
+              <span class="absolute right-3.5 top-3 text-sm font-bold text-slate-400">₫</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Ngày chi</label>
+              <input type="date" v-model="expenseForm.date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Danh mục</label>
+              <select v-model="expenseForm.category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium outline-none">
+                <option v-for="cat in expenseCategories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
+            <input type="text" v-model="expenseForm.note" placeholder="Ghi chú chi tiết..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none">
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button type="button" @click="showExpenseModal = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+              Hủy
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm">
+              Cập Nhật Chi Tiêu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 4: CONFIRMATION DIALOG -->
+    <div v-if="confirmModal.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-slate-900 text-base">{{ confirmModal.title }}</h4>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ confirmModal.message }}</p>
+        </div>
+        <div class="flex items-center justify-center gap-2 pt-2">
+          <button @click="confirmModal.show = false" class="w-full py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Hủy bỏ
+          </button>
+          <button @click="executeConfirmAction" class="w-full py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-xs">
+            Xác nhận xóa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: DATA BACKUP & RESTORE DIALOG -->
+    <div v-if="showBackupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <i class="fa-solid fa-database text-indigo-600"></i>
+            Quản Lý & Sao Lưu Dữ Liệu
+          </h3>
+          <button @click="showBackupModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <button @click="exportCSV" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 transition flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-file-excel text-emerald-600 text-xl"></i>
+              <div>
+                <div class="font-bold text-slate-800 text-xs group-hover:text-emerald-700">Xuất file CSV cho Excel</div>
+                <div class="text-[11px] text-slate-500">Mã hóa UTF-8 với BOM mở đúng font tiếng Việt.</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+
+          <button @click="exportJSONBackup" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 transition flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-download text-indigo-600 text-xl"></i>
+              <div>
+                <div class="font-bold text-slate-800 text-xs group-hover:text-indigo-700">Tải file sao lưu (.JSON)</div>
+                <div class="text-[11px] text-slate-500">Lưu toàn bộ dữ liệu máy tính / điện thoại.</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+
+          <label class="w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-purple-50 hover:border-purple-300 transition flex items-center justify-between group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-upload text-purple-600 text-xl"></i>
+              <div>
+                <div class="font-bold text-slate-800 text-xs group-hover:text-purple-700">Khôi phục từ file JSON</div>
+                <div class="text-[11px] text-slate-500">Chọn file .json từ máy tính hoặc điện thoại.</div>
+              </div>
+            </div>
+            <input type="file" accept=".json" @change="importJSONBackup" class="hidden">
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </label>
+        </div>
+
+        <div class="pt-2 space-y-2">
+          <button v-if="currentUser" @click="logout" class="w-full py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Đăng xuất ({{ authName }})
+          </button>
+          <button @click="showBackupModal = false" class="w-full py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Đóng cửa sổ
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT & VUE LOGIC -->
+  <script>
+    const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        // --- NAVIGATION STATE ---
+        const activeTab = ref('dashboard');
+        const deductionSubTab = ref('active');
+        const tabs = [
+          { id: 'dashboard', name: 'Tổng quan', shortName: 'Tổng quan', icon: 'fa-solid fa-chart-pie' },
+          { id: 'incomes', name: 'Thu nhập & Lương', shortName: 'Thu nhập', icon: 'fa-solid fa-money-bill-wave' },
+          { id: 'deductions', name: 'Khoản trừ lương', shortName: 'Trừ lương', icon: 'fa-solid fa-receipt' },
+          { id: 'expenses', name: 'Chi tiêu hàng ngày', shortName: 'Chi tiêu', icon: 'fa-solid fa-cart-shopping' },
+          { id: 'reports', name: 'Báo cáo & Data', shortName: 'Báo cáo', icon: 'fa-solid fa-file-invoice-dollar' }
+        ];
+
+        // --- GLOBAL DATE FILTER STATE ---
+        const today = new Date();
+        const currentYearStr = today.getFullYear().toString();
+        const currentMonthStr = String(today.getMonth() + 1).padStart(2, '0');
+        const selectedMonth = ref(`${currentYearStr}-${currentMonthStr}`);
+
+        // --- DATA STORE (REACTIVE ARRAYS) ---
+        const incomes = ref([]);
+        const deductions = ref([]);
+        const expenses = ref([]);
+        const isSyncedFlag = ref(false);
+        const currentUser = ref(null);
+        const authReady = ref(false);
+        const authMode = ref('login');
+        const authForm = ref({ username: '', password: '' });
+        const authError = ref('');
+        const authBusy = ref(false);
+        const online = ref(navigator.onLine);
+        const cloudConfigured = ref(false);
+        const allowSignup = ref(!!(window.APP_CONFIG && window.APP_CONFIG.allowSignup));
+        const isSynced = computed(() => isSyncedFlag.value && online.value);
+        const authName = computed(() => currentUser.value && currentUser.value.email ? currentUser.value.email.split('@')[0] : '');
+
+        // --- CATEGORIES DEFINITIONS WITH ICONS ---
+        const incomeCategories = [
+          { name: 'Lương chính', icon: 'fa-solid fa-briefcase' },
+          { name: 'Thưởng', icon: 'fa-solid fa-gift' },
+          { name: 'Hoa hồng', icon: 'fa-solid fa-chart-line' },
+          { name: 'Kinh doanh', icon: 'fa-solid fa-store' },
+          { name: 'Làm thêm', icon: 'fa-solid fa-laptop-code' },
+          { name: 'Khác', icon: 'fa-solid fa-wallet' }
+        ];
+
+        const deductionCategories = [
+          { name: 'Thuê nhà', icon: 'fa-solid fa-house-user' },
+          { name: 'Trả góp / Nợ', icon: 'fa-solid fa-credit-card' },
+          { name: 'Bảo hiểm', icon: 'fa-solid fa-shield-halved' },
+          { name: 'Gia đình', icon: 'fa-solid fa-people-roof' },
+          { name: 'Tiết kiệm / Hụi', icon: 'fa-solid fa-piggy-bank' },
+          { name: 'Khác', icon: 'fa-solid fa-file-contract' }
+        ];
+
+        const expenseCategories = [
+          { name: 'Ăn uống', icon: 'fa-solid fa-utensils' },
+          { name: 'Cà phê / Nước', icon: 'fa-solid fa-mug-hot' },
+          { name: 'Di chuyển / Xăng xe', icon: 'fa-solid fa-gas-pump' },
+          { name: 'Mua sắm', icon: 'fa-solid fa-bag-shopping' },
+          { name: 'Hóa đơn / Điện nước', icon: 'fa-solid fa-file-invoice-dollar' },
+          { name: 'Giải trí', icon: 'fa-solid fa-gamepad' },
+          { name: 'Sức khỏe', icon: 'fa-solid fa-heart-pulse' },
+          { name: 'Gia đình', icon: 'fa-solid fa-house' },
+          { name: 'Khác', icon: 'fa-solid fa-ellipsis' }
+        ];
+
+        // --- MODAL & FORM STATES ---
+        const showIncomeModal = ref(false);
+        const incomeForm = ref({ id: null, amount: 0, date: '', category: 'Lương chính', note: '', recurring: true });
+        const incomeFormFormattedAmount = ref('');
+
+        const showDeductionModal = ref(false);
+        const deductionForm = ref({
+          id: null, name: '', amount: 0, type: 'fixed', 
+          startMonth: selectedMonth.value, endMonth: selectedMonth.value, 
+          durationMonths: 6, termMode: 'months', active: true, 
+          category: 'Trả góp / Nợ', note: '', paidMonths: {}
         });
-    } catch(err) { showToast("Lỗi tạo ảnh: " + err); }
+        const deductionFormFormattedAmount = ref('');
 
-    table.classList.remove('is-snapping'); hideCols.forEach(el => el.style.display = '');
-    allRows.forEach((row) => {
-        row.style.display = ''; let qtyWrapper = row.querySelector('.qty-wrapper'); if(qtyWrapper) qtyWrapper.style.border = '';
-        let qtyBtns = row.querySelectorAll('.qty-btn'); qtyBtns.forEach(btn => btn.style.display = '');
-        let input = row.querySelector('.qty-input'); if(input) { input.style.border = ''; input.style.background = ''; }
-    });
-    thElements.forEach(th => th.style.position = ''); tableContainer.style.overflowY = origOverflow; table.style.width = originalWidth; table.style.margin = '';
-    
-    if(!hasSelection) { let checkboxes = document.querySelectorAll('.row-item-check'); for(let i=0; i<checkboxes.length; i++) checkboxes[i].checked = false; }
-    document.getElementById('checkAll').checked = false; lastCheckedIndex = null; updateSelectedCount(); overlay.style.display = 'none'; 
-}
-</script>
+        const showExpenseModal = ref(false);
+        const expenseForm = ref({
+          id: null, amount: 0, date: new Date().toISOString().substring(0, 10), 
+          category: 'Ăn uống', note: ''
+        });
+        const expenseFormFormattedAmount = ref('');
+        const modalExpenseFormattedAmount = ref('');
+        const expenseSearch = ref('');
+        const expenseCategoryFilter = ref('');
+
+        const showBackupModal = ref(false);
+        const toasts = ref([]);
+        const confirmModal = ref({ show: false, title: '', message: '', type: '', id: null });
+
+        // --- CHART JS INSTANCE HOLDER ---
+        let structureChartInstance = null;
+
+        // --- HELPER FUNCTIONS FOR DATES AND NUMBERS ---
+        const formatVND = (val) => {
+          if (val === null || val === undefined || isNaN(val)) return '0 ₫';
+          return new Intl.NumberFormat('vi-VN').format(val) + ' ₫';
+        };
+
+        const formatShortVND = (val) => {
+          if (val >= 1000000) return (val / 1000000) + 'Tr';
+          if (val >= 1000) return (val / 1000) + 'k';
+          return val;
+        };
+
+        const parseNumber = (str) => {
+          if (!str) return 0;
+          return parseInt(String(str).replace(/\D/g, ''), 10) || 0;
+        };
+
+        const monthToNum = (ymStr) => {
+          if (!ymStr || !ymStr.includes('-')) return 0;
+          const [y, m] = ymStr.split('-').map(Number);
+          return y * 12 + (m - 1);
+        };
+
+        const addMonthsToYM = (ymStr, numMonths) => {
+          if (!ymStr) return ymStr;
+          const [y, m] = ymStr.split('-').map(Number);
+          const date = new Date(y, m - 1 + numMonths, 1);
+          const resY = date.getFullYear();
+          const resM = String(date.getMonth() + 1).padStart(2, '0');
+          return `${resY}-${resM}`;
+        };
+
+        const formatDateVN = (dateStr) => {
+          if (!dateStr) return '';
+          const parts = dateStr.split('-');
+          if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+          return dateStr;
+        };
+
+        const showToast = (message, type = 'success') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, message, type });
+          setTimeout(() => removeToast(id), 3500);
+        };
+
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // --- GLOBAL MONTH NAVIGATION ---
+        const changeMonth = (delta) => {
+          const [y, m] = selectedMonth.value.split('-').map(Number);
+          const date = new Date(y, m - 1 + delta, 1);
+          const resY = date.getFullYear();
+          const resM = String(date.getMonth() + 1).padStart(2, '0');
+          selectedMonth.value = `${resY}-${resM}`;
+        };
+
+        const resetToCurrentMonth = () => {
+          selectedMonth.value = `${currentYearStr}-${currentMonthStr}`;
+        };
+
+        const formattedSelectedMonthLabel = computed(() => {
+          if (!selectedMonth.value) return '';
+          const [y, m] = selectedMonth.value.split('-');
+          return `${m}/${y}`;
+        });
+
+        const selectedYear = computed(() => selectedMonth.value ? selectedMonth.value.split('-')[0] : currentYearStr);
+
+        // --- COMPUTED DATA FOR SELECTED MONTH ---
+        // Khoản thu lặp hàng tháng (recurring) tự xuất hiện ở mọi tháng từ startMonth đến endMonth (trống = không giới hạn)
+        const incomesForMonth = (ym) => {
+          const n = monthToNum(ym);
+          const out = [];
+          incomes.value.forEach(i => {
+            if (i.recurring) {
+              const s = monthToNum(i.startMonth || (i.date || '').slice(0, 7));
+              const e = i.endMonth ? monthToNum(i.endMonth) : Infinity;
+              if (n >= s && n <= e) {
+                const [y, m] = ym.split('-').map(Number);
+                const d = Math.min(parseInt(i.day || (i.date || '').slice(8, 10), 10) || 1, new Date(y, m, 0).getDate());
+                out.push({ ...i, date: `${ym}-${String(d).padStart(2, '0')}` });
+              }
+            } else if (i.date && i.date.startsWith(ym)) out.push(i);
+          });
+          return out.sort((a, b) => a.date.localeCompare(b.date));
+        };
+        const currentMonthIncomes = computed(() => incomesForMonth(selectedMonth.value));
+
+        const currentMonthExpenses = computed(() => {
+          return expenses.value.filter(e => e.date && e.date.startsWith(selectedMonth.value));
+        });
+
+        const filteredExpenses = computed(() => {
+          return currentMonthExpenses.value.filter(e => {
+            const matchesSearch = !expenseSearch.value || (e.note && e.note.toLowerCase().includes(expenseSearch.value.toLowerCase())) || e.category.toLowerCase().includes(expenseSearch.value.toLowerCase());
+            const matchesCategory = !expenseCategoryFilter.value || e.category === expenseCategoryFilter.value;
+            return matchesSearch && matchesCategory;
+          });
+        });
+
+        // CORE LOGIC: DETECT ACTIVE DEDUCTIONS FOR THE SELECTED MONTH
+        const currentMonthDeductions = computed(() => {
+          const selNum = monthToNum(selectedMonth.value);
+          return deductions.value.map(d => {
+            const startNum = monthToNum(d.startMonth);
+            const endNum = d.type === 'time_limited' ? monthToNum(d.endMonth) : Infinity;
+            
+            // Check if active in selectedMonth
+            const isActiveInMonth = selNum >= startNum && selNum <= endNum && (d.type === 'fixed' ? d.active !== false : true);
+            if (!isActiveInMonth) return null;
+
+            // Calculate time-limited progress
+            let calcTotalMonths = 0;
+            let calcCurrentPeriod = 0;
+            let calcRemainingMonths = 0;
+            let calcPercent = 100;
+
+            if (d.type === 'time_limited') {
+              calcTotalMonths = Math.max(1, endNum - startNum + 1);
+              calcCurrentPeriod = Math.max(1, selNum - startNum + 1);
+              calcRemainingMonths = Math.max(0, endNum - selNum);
+              calcPercent = Math.min(100, Math.round((calcCurrentPeriod / calcTotalMonths) * 100));
+            }
+
+            return {
+              ...d,
+              calcTotalMonths,
+              calcCurrentPeriod,
+              calcRemainingMonths,
+              calcPercent
+            };
+          }).filter(Boolean);
+        });
+
+        // EXPIRED / COMPLETED DEDUCTIONS
+        const expiredDeductions = computed(() => {
+          const selNum = monthToNum(selectedMonth.value);
+          return deductions.value.filter(d => {
+            if (d.type !== 'time_limited') return false;
+            const endNum = monthToNum(d.endMonth);
+            return selNum > endNum;
+          });
+        });
+
+        // MONTHLY KPI SUMMARY COMPUTATIONS
+        const monthlySummary = computed(() => {
+          const totalIncome = currentMonthIncomes.value.reduce((sum, i) => sum + Number(i.amount || 0), 0);
+          const totalDeductions = currentMonthDeductions.value.reduce((sum, d) => sum + Number(d.amount || 0), 0);
+          const totalExpenses = currentMonthExpenses.value.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+          const remainingBalance = totalIncome - totalDeductions - totalExpenses;
+          const savingsRate = totalIncome > 0 ? Math.round((remainingBalance / totalIncome) * 100) : 0;
+
+          return {
+            totalIncome,
+            totalDeductions,
+            totalExpenses,
+            remainingBalance,
+            savingsRate,
+            incomeCount: currentMonthIncomes.value.length,
+            activeDeductionsCount: currentMonthDeductions.value.length,
+            expenseCount: currentMonthExpenses.value.length
+          };
+        });
+
+        const getPercent = (amount, total) => {
+          if (!total || total <= 0) return 0;
+          return Math.round((amount / total) * 100);
+        };
+
+        // --- ICON HELPERS ---
+        const getExpenseCategoryIcon = (catName) => {
+          const cat = expenseCategories.find(c => c.name === catName);
+          return cat ? cat.icon : 'fa-solid fa-tag';
+        };
+
+        const getIncomeCategoryIcon = (catName) => {
+          const cat = incomeCategories.find(c => c.name === catName);
+          return cat ? cat.icon : 'fa-solid fa-wallet';
+        };
+
+        const getDeductionCategoryIcon = (catName) => {
+          const cat = deductionCategories.find(c => c.name === catName);
+          return cat ? cat.icon : 'fa-solid fa-receipt';
+        };
+
+        // --- INPUT FORMATTING HANDLERS ---
+        const onIncomeAmountInput = (e) => {
+          const num = parseNumber(e.target.value);
+          incomeForm.value.amount = num;
+          incomeFormFormattedAmount.value = num ? new Intl.NumberFormat('vi-VN').format(num) : '';
+        };
+
+        const setIncomeQuickAmount = (val) => {
+          incomeForm.value.amount += val;
+          incomeFormFormattedAmount.value = new Intl.NumberFormat('vi-VN').format(incomeForm.value.amount);
+        };
+
+        const onDeductionAmountInput = (e) => {
+          const num = parseNumber(e.target.value);
+          deductionForm.value.amount = num;
+          deductionFormFormattedAmount.value = num ? new Intl.NumberFormat('vi-VN').format(num) : '';
+        };
+
+        const onExpenseAmountInput = (e) => {
+          const num = parseNumber(e.target.value);
+          expenseForm.value.amount = num;
+          expenseFormFormattedAmount.value = num ? new Intl.NumberFormat('vi-VN').format(num) : '';
+        };
+
+        const addExpenseQuickAmount = (val) => {
+          expenseForm.value.amount += val;
+          expenseFormFormattedAmount.value = new Intl.NumberFormat('vi-VN').format(expenseForm.value.amount);
+        };
+
+        const onModalExpenseAmountInput = (e) => {
+          const num = parseNumber(e.target.value);
+          expenseForm.value.amount = num;
+          modalExpenseFormattedAmount.value = num ? new Intl.NumberFormat('vi-VN').format(num) : '';
+        };
+
+        // DEDUCTION TERM RE-CALCULATION
+        const recalculateDeductionTerm = () => {
+          if (!deductionForm.value.startMonth) return;
+
+          if (deductionForm.value.termMode === 'months') {
+            const dur = Math.max(1, parseInt(deductionForm.value.durationMonths, 10) || 1);
+            deductionForm.value.durationMonths = dur;
+            deductionForm.value.endMonth = addMonthsToYM(deductionForm.value.startMonth, dur - 1);
+          } else {
+            if (deductionForm.value.endMonth) {
+              const startN = monthToNum(deductionForm.value.startMonth);
+              const endN = monthToNum(deductionForm.value.endMonth);
+              const diff = endN - startN + 1;
+              deductionForm.value.durationMonths = diff > 0 ? diff : 1;
+            }
+          }
+        };
+
+        // --- MODAL OPENERS ---
+        const openIncomeModal = (item = null) => {
+          if (item) {
+            incomeForm.value = { ...item, recurring: !!item.recurring };
+            incomeFormFormattedAmount.value = new Intl.NumberFormat('vi-VN').format(item.amount);
+          } else {
+            incomeForm.value = {
+              id: null,
+              amount: 0,
+              date: `${selectedMonth.value}-01`,
+              category: 'Lương chính',
+              note: '',
+              recurring: true
+            };
+            incomeFormFormattedAmount.value = '';
+          }
+          showIncomeModal.value = true;
+        };
+
+        const openDeductionModal = (item = null) => {
+          if (item) {
+            deductionForm.value = { ...item, paidMonths: item.paidMonths || {} };
+            deductionFormFormattedAmount.value = new Intl.NumberFormat('vi-VN').format(item.amount);
+          } else {
+            deductionForm.value = {
+              id: null,
+              name: '',
+              amount: 0,
+              type: 'time_limited',
+              startMonth: selectedMonth.value,
+              endMonth: addMonthsToYM(selectedMonth.value, 5),
+              durationMonths: 6,
+              termMode: 'months',
+              active: true,
+              category: 'Trả góp / Nợ',
+              note: '',
+              paidMonths: {}
+            };
+            deductionFormFormattedAmount.value = '';
+          }
+          showDeductionModal.value = true;
+        };
+
+        const openExpenseModal = (item = null) => {
+          if (item) {
+            expenseForm.value = { ...item };
+            modalExpenseFormattedAmount.value = new Intl.NumberFormat('vi-VN').format(item.amount);
+            showExpenseModal.value = true;
+          } else {
+            // Fast inline entry focus
+            activeTab.value = 'expenses';
+          }
+        };
+
+        const openBackupModal = () => {
+          showBackupModal.value = true;
+        };
+
+        // --- FIRESTORE / AUTH / LOCAL HELPERS ---
+        let dbInstance = null, authInstance = null, unsubs = [];
+        const lsKey = (n) => currentUser.value ? `vtc_${currentUser.value.uid}_${n}` : `vtc_${n}`;
+        const saveToLocalBackup = () => {
+          try {
+            localStorage.setItem(lsKey('incomes'), JSON.stringify(incomes.value));
+            localStorage.setItem(lsKey('deductions'), JSON.stringify(deductions.value));
+            localStorage.setItem(lsKey('expenses'), JSON.stringify(expenses.value));
+          } catch (e) {}
+        };
+        const plain = (o) => JSON.parse(JSON.stringify(o));
+        const fsDoc = (col, id) => window.FirebaseDB.doc(dbInstance, 'users', currentUser.value.uid, col, id);
+
+        // Không await mạng: Firestore tự xếp hàng ghi khi offline và đẩy lên khi có mạng lại
+        const syncItemToFirestore = async (collectionName, item) => {
+          saveToLocalBackup();
+          if (!dbInstance || !currentUser.value) return;
+          window.FirebaseDB.setDoc(fsDoc(collectionName, item.id), plain(item)).catch(err => {
+            console.error('Firestore sync error:', err);
+            showToast('Chưa lưu được lên cloud: ' + (err.code || err.message), 'error');
+          });
+        };
+        const deleteItemFromFirestore = async (collectionName, id) => {
+          saveToLocalBackup();
+          if (!dbInstance || !currentUser.value) return;
+          window.FirebaseDB.deleteDoc(fsDoc(collectionName, id)).catch(err => {
+            console.error('Firestore delete error:', err);
+            showToast('Chưa xóa được trên cloud: ' + (err.code || err.message), 'error');
+          });
+        };
+        const pushAllToCloud = () => {
+          incomes.value.forEach(i => syncItemToFirestore('incomes', i));
+          deductions.value.forEach(d => syncItemToFirestore('deductions', d));
+          expenses.value.forEach(e => syncItemToFirestore('expenses', e));
+        };
+
+        const authErrorText = (code) => ({
+          'auth/invalid-credential': 'Sai tên đăng nhập hoặc mật khẩu.',
+          'auth/invalid-login-credentials': 'Sai tên đăng nhập hoặc mật khẩu.',
+          'auth/user-not-found': 'Sai tên đăng nhập hoặc mật khẩu.',
+          'auth/wrong-password': 'Sai tên đăng nhập hoặc mật khẩu.',
+          'auth/email-already-in-use': 'Tên đăng nhập này đã có người dùng.',
+          'auth/weak-password': 'Mật khẩu cần tối thiểu 6 ký tự.',
+          'auth/too-many-requests': 'Thử quá nhiều lần, vui lòng đợi một lúc rồi thử lại.',
+          'auth/network-request-failed': 'Không có kết nối mạng.',
+          'auth/operation-not-allowed': 'Chưa bật đăng nhập Email/Password hoặc đã tắt tạo tài khoản trong Firebase.',
+          'auth/unauthorized-domain': 'Tên miền này chưa được thêm vào Authorized domains trong Firebase.'
+        }[code] || ('Lỗi: ' + (code || 'không xác định')));
+
+        const submitAuth = async () => {
+          authError.value = '';
+          const u = authForm.value.username.trim().toLowerCase();
+          const p = authForm.value.password;
+          if (!/^[a-z0-9._-]{3,30}$/.test(u)) { authError.value = 'Tên đăng nhập 3–30 ký tự: chữ thường không dấu, số, dấu . _ -'; return; }
+          if (p.length < 6) { authError.value = 'Mật khẩu cần tối thiểu 6 ký tự.'; return; }
+          if (!authInstance) { authError.value = authError.value || 'Chưa kết nối được Firebase, hãy tải lại trang.'; return; }
+          authBusy.value = true;
+          try {
+            const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.FirebaseDB;
+            const email = `${u}@thuchi-app.com`;
+            if (authMode.value === 'register' && allowSignup.value) await createUserWithEmailAndPassword(authInstance, email, p);
+            else await signInWithEmailAndPassword(authInstance, email, p);
+            authForm.value.password = '';
+          } catch (err) {
+            authError.value = authErrorText(err.code);
+          } finally { authBusy.value = false; }
+        };
+
+        const stopListening = () => { unsubs.forEach(u => u()); unsubs = []; };
+        const logout = async () => {
+          ['incomes', 'deductions', 'expenses'].forEach(n => localStorage.removeItem(lsKey(n)));
+          stopListening();
+          try { await window.FirebaseDB.signOut(authInstance); } catch (e) {}
+        };
+
+        const migrateLegacy = () => {
+          const flag = `vtc_migrated_${currentUser.value.uid}`;
+          if (localStorage.getItem(flag)) return;
+          localStorage.setItem(flag, '1');
+          let n = 0;
+          ['incomes', 'deductions', 'expenses'].forEach(name => {
+            let arr = [];
+            try { arr = JSON.parse(localStorage.getItem('vtc_' + name) || '[]'); } catch (e) {}
+            arr.filter(x => x && x.id && !String(x.id).includes('_sample_')).forEach(x => { syncItemToFirestore(name, x); n++; });
+          });
+          if (n) showToast(`Đã đưa ${n} dữ liệu cũ trên máy này lên cloud`);
+        };
+
+        const startListening = () => {
+          const { collection, onSnapshot } = window.FirebaseDB;
+          const uid = currentUser.value.uid;
+          const targets = { incomes, deductions, expenses };
+          const serverEmpty = {};
+          Object.entries(targets).forEach(([name, target]) => {
+            try { const c = localStorage.getItem(lsKey(name)); if (c) target.value = JSON.parse(c); } catch (e) {}
+            unsubs.push(onSnapshot(collection(dbInstance, 'users', uid, name), snap => {
+              target.value = snap.docs.map(d => d.data()).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+              saveToLocalBackup();
+              if (!snap.metadata.fromCache) {
+                serverEmpty[name] = snap.empty;
+                if (Object.keys(serverEmpty).length === 3 && Object.values(serverEmpty).every(Boolean)) migrateLegacy();
+              }
+            }, err => {
+              console.warn('Snapshot error', name, err);
+              showToast('Không đọc được dữ liệu cloud: ' + (err.code || err.message), 'error');
+            }));
+          });
+        };
+
+        // --- CRUD OPERATIONS ---
+        const saveIncome = async () => {
+          const f = incomeForm.value;
+          if (!f.amount || f.amount <= 0) { showToast('Vui lòng nhập số tiền hợp lệ!', 'error'); return; }
+          if (!f.date) { showToast('Vui lòng chọn ngày nhận!', 'error'); return; }
+          const ym = f.date.slice(0, 7);
+          const day = parseInt(f.date.slice(8, 10), 10) || 1;
+          const label = `${ym.slice(5)}/${ym.slice(0, 4)}`;
+          const base = { amount: Number(f.amount), date: f.date, category: f.category, note: f.note || '', createdAt: new Date().toISOString() };
+          const newId = () => 'inc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+          const put = (item) => {
+            const idx = incomes.value.findIndex(i => i.id === item.id);
+            if (idx >= 0) incomes.value[idx] = item; else incomes.value.unshift(item);
+            return syncItemToFirestore('incomes', item);
+          };
+          const rec = (id, start, end) => ({ ...base, id, recurring: true, startMonth: start, endMonth: end, day });
+          const orig = f.id ? incomes.value.find(i => i.id === f.id) : null;
+          let msg = 'Đã lưu khoản thu nhập thành công!';
+
+          if (!orig || !orig.recurring) {
+            const id = orig ? orig.id : newId();
+            put(f.recurring ? rec(id, ym, '') : { ...base, id, recurring: false });
+            if (f.recurring) msg = `Đã lưu — tự động áp dụng từ tháng ${label} trở đi`;
+          } else {
+            const start = orig.startMonth || orig.date.slice(0, 7);
+            const after = monthToNum(ym) > monthToNum(start);
+            const changed = orig.amount !== base.amount || orig.category !== base.category || (orig.note || '') !== base.note
+              || (parseInt(orig.day || orig.date.slice(8, 10), 10) || 1) !== day;
+            if (!f.recurring) {
+              if (after) put({ ...orig, endMonth: addMonthsToYM(ym, -1) });
+              else { incomes.value = incomes.value.filter(i => i.id !== orig.id); deleteItemFromFirestore('incomes', orig.id); }
+              put({ ...base, id: newId(), recurring: false });
+              msg = 'Đã chuyển thành khoản riêng của tháng này, không lặp lại nữa';
+            } else if (changed && after) {
+              put({ ...orig, endMonth: addMonthsToYM(ym, -1) });
+              put(rec(newId(), ym, orig.endMonth || ''));
+              msg = `Đã cập nhật từ tháng ${label} trở đi (các tháng trước giữ nguyên)`;
+            } else {
+              put(rec(orig.id, after ? start : ym, orig.endMonth || ''));
+              if (changed) msg = `Đã cập nhật khoản thu nhập từ tháng ${label}`;
+            }
+          }
+          showIncomeModal.value = false;
+          showToast(msg);
+        };
+
+        const saveDeduction = async () => {
+          if (!deductionForm.value.name) {
+            showToast('Vui lòng nhập tên khoản trừ!', 'error');
+            return;
+          }
+          if (!deductionForm.value.amount || deductionForm.value.amount <= 0) {
+            showToast('Vui lòng nhập số tiền trừ!', 'error');
+            return;
+          }
+
+          recalculateDeductionTerm();
+
+          const item = {
+            id: deductionForm.value.id || 'ded_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: deductionForm.value.name,
+            amount: Number(deductionForm.value.amount),
+            type: deductionForm.value.type,
+            startMonth: deductionForm.value.startMonth,
+            endMonth: deductionForm.value.type === 'time_limited' ? deductionForm.value.endMonth : '',
+            durationMonths: deductionForm.value.durationMonths || 1,
+            active: deductionForm.value.active !== false,
+            category: deductionForm.value.category,
+            note: deductionForm.value.note || '',
+            paidMonths: deductionForm.value.paidMonths || {},
+            createdAt: new Date().toISOString()
+          };
+
+          const idx = deductions.value.findIndex(d => d.id === item.id);
+          if (idx >= 0) deductions.value[idx] = item;
+          else deductions.value.unshift(item);
+
+          await syncItemToFirestore('deductions', item);
+          showDeductionModal.value = false;
+          showToast('Đã lưu khoản trừ lương!');
+        };
+
+        const toggleDeductionPaid = async (deductionId) => {
+          const item = deductions.value.find(d => d.id === deductionId);
+          if (!item) return;
+          if (!item.paidMonths) item.paidMonths = {};
+          
+          item.paidMonths[selectedMonth.value] = !item.paidMonths[selectedMonth.value];
+          await syncItemToFirestore('deductions', item);
+          showToast(item.paidMonths[selectedMonth.value] ? 'Đã đánh dấu ĐÃ TRỪ tháng này!' : 'Đã bỏ đánh dấu trừ tháng này!');
+        };
+
+        const isDeductionPaid = (deductionId) => {
+          const item = deductions.value.find(d => d.id === deductionId);
+          return item && item.paidMonths && !!item.paidMonths[selectedMonth.value];
+        };
+
+        const toggleDeductionActive = async (item) => {
+          item.active = !item.active;
+          await syncItemToFirestore('deductions', item);
+          showToast(item.active ? 'Đã kích hoạt khoản trừ!' : 'Đã tạm dừng khoản trừ!');
+        };
+
+        const saveExpense = async () => {
+          if (!expenseForm.value.amount || expenseForm.value.amount <= 0) {
+            showToast('Vui lòng nhập số tiền chi tiêu!', 'error');
+            return;
+          }
+
+          const item = {
+            id: expenseForm.value.id || 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            amount: Number(expenseForm.value.amount),
+            date: expenseForm.value.date,
+            category: expenseForm.value.category,
+            note: expenseForm.value.note || '',
+            createdAt: new Date().toISOString()
+          };
+
+          const idx = expenses.value.findIndex(e => e.id === item.id);
+          if (idx >= 0) expenses.value[idx] = item;
+          else expenses.value.unshift(item);
+
+          await syncItemToFirestore('expenses', item);
+          
+          // Reset inline form
+          expenseForm.value = {
+            id: null,
+            amount: 0,
+            date: new Date().toISOString().substring(0, 10),
+            category: 'Ăn uống',
+            note: ''
+          };
+          expenseFormFormattedAmount.value = '';
+          showToast('Đã ghi nhận khoản chi tiêu!');
+        };
+
+        const saveExpenseFromModal = async () => {
+          await saveExpense();
+          showExpenseModal.value = false;
+        };
+
+        const confirmDelete = (type, id) => {
+          confirmModal.value = {
+            show: true,
+            title: 'Xác Nhận Xóa',
+            message: type === 'income_recurring'
+              ? `Khoản này lặp lại hàng tháng. Xóa từ tháng ${formattedSelectedMonthLabel.value} trở đi? (Các tháng trước vẫn giữ nguyên)`
+              : 'Bạn có chắc chắn muốn xóa dữ liệu này? Hành động không thể hoàn tác.',
+            type,
+            id
+          };
+        };
+
+        const executeConfirmAction = async () => {
+          const { type, id } = confirmModal.value;
+          if (type === 'income') {
+            incomes.value = incomes.value.filter(i => i.id !== id);
+            await deleteItemFromFirestore('incomes', id);
+          } else if (type === 'income_recurring') {
+            const orig = incomes.value.find(i => i.id === id);
+            if (orig) {
+              const start = orig.startMonth || orig.date.slice(0, 7);
+              if (monthToNum(selectedMonth.value) <= monthToNum(start)) {
+                incomes.value = incomes.value.filter(i => i.id !== id);
+                await deleteItemFromFirestore('incomes', id);
+              } else {
+                orig.endMonth = addMonthsToYM(selectedMonth.value, -1);
+                await syncItemToFirestore('incomes', orig);
+              }
+            }
+          } else if (type === 'deduction') {
+            deductions.value = deductions.value.filter(d => d.id !== id);
+            await deleteItemFromFirestore('deductions', id);
+          } else if (type === 'expense') {
+            expenses.value = expenses.value.filter(e => e.id !== id);
+            await deleteItemFromFirestore('expenses', id);
+          }
+          confirmModal.value.show = false;
+          showToast('Đã xóa dữ liệu!');
+        };
+
+        // --- ANNUAL SUMMARY TABLE CALCULATIONS ---
+        const getYearlyMonthSummary = (monthNum) => {
+          const ym = `${selectedYear.value}-${String(monthNum).padStart(2, '0')}`;
+          const inc = incomesForMonth(ym).reduce((sum, i) => sum + Number(i.amount || 0), 0);
+          const exp = expenses.value.filter(e => e.date && e.date.startsWith(ym)).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+          
+          const selN = monthToNum(ym);
+          const ded = deductions.value.filter(d => {
+            const startN = monthToNum(d.startMonth);
+            const endN = d.type === 'time_limited' ? monthToNum(d.endMonth) : Infinity;
+            return selN >= startN && selN <= endN && (d.type === 'fixed' ? d.active !== false : true);
+          }).reduce((sum, d) => sum + Number(d.amount || 0), 0);
+
+          return {
+            income: inc,
+            deduction: ded,
+            expense: exp,
+            remaining: inc - ded - exp
+          };
+        };
+
+        // --- CHART JS RENDER LOGIC ---
+        const renderCharts = () => {
+          nextTick(() => {
+            const ctx = document.getElementById('structureChart');
+            if (!ctx) return;
+
+            const { totalIncome, totalDeductions, totalExpenses, remainingBalance } = monthlySummary.value;
+            const rem = Math.max(0, remainingBalance);
+
+            if (structureChartInstance) {
+              structureChartInstance.destroy();
+            }
+
+            structureChartInstance = new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                labels: ['Trừ lương', 'Chi tiêu', 'Số dư còn lại'],
+                datasets: [{
+                  data: [totalDeductions, totalExpenses, rem],
+                  backgroundColor: ['#4f46e5', '#e11d48', '#10b981'],
+                  borderWidth: 2,
+                  borderColor: '#ffffff'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return ' ' + context.label + ': ' + formatVND(context.raw);
+                      }
+                    }
+                  }
+                },
+                cutout: '72%'
+              }
+            });
+          });
+        };
+
+        watch([monthlySummary, activeTab], () => {
+          if (activeTab.value === 'dashboard') {
+            renderCharts();
+          }
+        });
+
+        // --- BACKUP & CSV EXPORT ---
+        const exportJSONBackup = () => {
+          const data = {
+            incomes: incomes.value,
+            deductions: deductions.value,
+            expenses: expenses.value,
+            exportedAt: new Date().toISOString()
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `VietThuChi_Backup_${selectedMonth.value}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Đã tải xuống file sao lưu JSON!');
+        };
+
+        const importJSONBackup = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = async (evt) => {
+            try {
+              const data = JSON.parse(evt.target.result);
+              if (data.incomes && data.deductions && data.expenses) {
+                incomes.value = data.incomes;
+                deductions.value = data.deductions;
+                expenses.value = data.expenses;
+                saveToLocalBackup();
+                pushAllToCloud();
+                showToast('Đã khôi phục dữ liệu từ JSON thành công!');
+                showBackupModal.value = false;
+              } else {
+                showToast('File JSON không đúng định dạng!', 'error');
+              }
+            } catch (err) {
+              showToast('Lỗi đọc file JSON!', 'error');
+            }
+          };
+          reader.readAsText(file);
+        };
+
+        const exportCSV = () => {
+          let csvContent = "\uFEFF"; // BOM for Vietnamese Unicode in Excel
+          csvContent += "LOAI,ID,TEN_DANH_MUC,SO_TIEN,NGAY_THANG,GHI_CHU\n";
+
+          incomes.value.forEach(i => {
+            csvContent += `"THU_NHAP","${i.id}","${i.category}","${i.amount}","${i.recurring ? (i.startMonth || '') + ' - ' + (i.endMonth || 'Hàng tháng') : i.date}","${(i.note || '').replace(/"/g, '""')}"\n`;
+          });
+
+          deductions.value.forEach(d => {
+            csvContent += `"TRU_LUONG","${d.id}","${d.name} (${d.category})","${d.amount}","${d.startMonth} - ${d.endMonth || 'Cố định'}","${(d.note || '').replace(/"/g, '""')}"\n`;
+          });
+
+          expenses.value.forEach(e => {
+            csvContent += `"CHI_TIEU","${e.id}","${e.category}","${e.amount}","${e.date}","${(e.note || '').replace(/"/g, '""')}"\n`;
+          });
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `BaoCao_ThuChi_${selectedMonth.value}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Đã xuất file CSV thành công!');
+        };
+
+        // LOAD DEMO SAMPLE DATA
+        const loadSampleData = () => {
+          const sampleYM = selectedMonth.value;
+          
+          incomes.value = [
+            { id: 'inc_sample_1', amount: 18000000, date: `${sampleYM}-05`, category: 'Lương chính', note: 'Lương chuyển khoản công ty' },
+            { id: 'inc_sample_2', amount: 3500000, date: `${sampleYM}-15`, category: 'Thưởng', note: 'Thưởng KPI quý' }
+          ];
+
+          deductions.value = [
+            {
+              id: 'ded_sample_1',
+              name: 'Tiền thuê nhà cố định',
+              amount: 4000000,
+              type: 'fixed',
+              startMonth: `${sampleYM}`,
+              endMonth: '',
+              durationMonths: 1,
+              active: true,
+              category: 'Thuê nhà',
+              note: 'Tiền nhà & phí dịch vụ chung cư',
+              paidMonths: {}
+            },
+            {
+              id: 'ded_sample_2',
+              name: 'Trả góp điện thoại 12 tháng',
+              amount: 1250000,
+              type: 'time_limited',
+              startMonth: sampleYM,
+              endMonth: addMonthsToYM(sampleYM, 11),
+              durationMonths: 12,
+              active: true,
+              category: 'Trả góp / Nợ',
+              note: 'Mua điện thoại trả góp 0%',
+              paidMonths: {}
+            },
+            {
+              id: 'ded_sample_3',
+              name: 'Bảo hiểm nhân thọ',
+              amount: 1500000,
+              type: 'fixed',
+              startMonth: '2026-01',
+              endMonth: '',
+              durationMonths: 1,
+              active: true,
+              category: 'Bảo hiểm',
+              note: 'Đóng tích lũy hàng tháng',
+              paidMonths: {}
+            }
+          ];
+
+          expenses.value = [
+            { id: 'exp_sample_1', amount: 65000, date: `${sampleYM}-06`, category: 'Ăn uống', note: 'Ăn sáng phở bò' },
+            { id: 'exp_sample_2', amount: 45000, date: `${sampleYM}-06`, category: 'Cà phê / Nước', note: 'Cà phê muối' },
+            { id: 'exp_sample_3', amount: 500000, date: `${sampleYM}-07`, category: 'Di chuyển / Xăng xe', note: 'Đổ xăng ô tô / xe máy' },
+            { id: 'exp_sample_4', amount: 1200000, date: `${sampleYM}-10`, category: 'Hóa đơn / Điện nước', note: 'Tiền điện & internet' }
+          ];
+
+          saveToLocalBackup();
+          pushAllToCloud();
+          showToast('Đã nạp dữ liệu mẫu thành công!');
+        };
+
+        // --- LIFECYCLE INITIALIZATION & CLOUD SYNC ---
+        onMounted(async () => {
+          window.addEventListener('online', () => online.value = true);
+          window.addEventListener('offline', () => online.value = false);
+          const cfg = (window.APP_CONFIG || {}).firebase || {};
+          cloudConfigured.value = !!(cfg.apiKey && cfg.projectId);
+
+          if (!cloudConfigured.value) {
+            // Chế độ cục bộ (chưa cấu hình Firebase)
+            try {
+              const li = localStorage.getItem('vtc_incomes'), ld = localStorage.getItem('vtc_deductions'), le = localStorage.getItem('vtc_expenses');
+              if (li) incomes.value = JSON.parse(li);
+              if (ld) deductions.value = JSON.parse(ld);
+              if (le) expenses.value = JSON.parse(le);
+              if (!li && !ld && !le) loadSampleData();
+            } catch (e) { console.warn('LocalStorage error:', e); }
+            authReady.value = true;
+            renderCharts();
+            return;
+          }
+
+          if (location.protocol === 'file:') {
+            authError.value = 'Không thể đăng nhập khi mở trực tiếp file từ máy. Hãy đưa file lên một địa chỉ https (Netlify / Firebase Hosting) rồi mở bằng link đó.';
+            authReady.value = true;
+            return;
+          }
+          const ready = await Promise.race([
+            window.FirebaseDB ? Promise.resolve(true) : new Promise(r => window.addEventListener('firebase-ready', () => r(true), { once: true })),
+            new Promise(r => setTimeout(() => r(false), 10000))
+          ]);
+          if (!ready) { authError.value = 'Không tải được Firebase. Kiểm tra kết nối mạng rồi tải lại trang.'; authReady.value = true; return; }
+
+          try {
+            const F = window.FirebaseDB;
+            const app = F.initializeApp(cfg);
+            try {
+              dbInstance = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) });
+            } catch (e) { dbInstance = F.getFirestore(app); }
+            authInstance = F.getAuth(app);
+            setTimeout(() => { if (!authReady.value) { authError.value = 'Không kết nối được Firebase. Kiểm tra mạng và Authorized domains rồi tải lại trang.'; authReady.value = true; } }, 12000);
+            F.onAuthStateChanged(authInstance, (user) => {
+              stopListening();
+              currentUser.value = user;
+              if (user) { startListening(); }
+              else { incomes.value = []; deductions.value = []; expenses.value = []; }
+              isSyncedFlag.value = !!user;
+              authReady.value = true;
+            });
+          } catch (err) {
+            console.warn('Firebase init error:', err);
+            authError.value = 'Lỗi khởi tạo Firebase: kiểm tra lại thông tin cấu hình.';
+            authReady.value = true;
+          }
+          renderCharts();
+        });
+
+        return {
+          activeTab, deductionSubTab, tabs, selectedMonth, selectedYear,
+          formattedSelectedMonthLabel, changeMonth, resetToCurrentMonth,
+          incomes, deductions, expenses, currentMonthIncomes, currentMonthDeductions,
+          expiredDeductions, currentMonthExpenses, filteredExpenses, monthlySummary,
+          incomeCategories, deductionCategories, expenseCategories,
+          getIncomeCategoryIcon, getDeductionCategoryIcon, getExpenseCategoryIcon,
+          formatVND, formatShortVND, formatDateVN, getPercent, getYearlyMonthSummary,
+          showIncomeModal, incomeForm, incomeFormFormattedAmount, onIncomeAmountInput, setIncomeQuickAmount, openIncomeModal, saveIncome,
+          showDeductionModal, deductionForm, deductionFormFormattedAmount, onDeductionAmountInput, recalculateDeductionTerm, openDeductionModal, saveDeduction, toggleDeductionPaid, isDeductionPaid, toggleDeductionActive,
+          showExpenseModal, expenseForm, expenseFormFormattedAmount, modalExpenseFormattedAmount, onExpenseAmountInput, addExpenseQuickAmount, onModalExpenseAmountInput, openExpenseModal, saveExpense, saveExpenseFromModal, expenseSearch, expenseCategoryFilter,
+          confirmModal, confirmDelete, executeConfirmAction,
+          toasts, removeToast, showBackupModal, openBackupModal, exportJSONBackup, importJSONBackup, exportCSV, loadSampleData, isSynced,
+          currentUser, authReady, authMode, authForm, authError, authBusy, cloudConfigured, allowSignup, authName, submitAuth, logout
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
